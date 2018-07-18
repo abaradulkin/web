@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+         xmlns:ns0="http://www.tao.lu/Ontologies/TAO.rdf#"
+         xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+
+  <rdf:Description rdf:about="http://playground/sprint80.rdf#i153175388690531883">
+    <ns0:UpdatedAt>1531753908.0257</ns0:UpdatedAt>
+    <rdf:type>http://www.tao.lu/Ontologies/TAOGroup.rdf#Group</rdf:type>
+    <rdfs:label xml:lang="en-US">auto_group</rdfs:label>
+  </rdf:Description>
+
+</rdf:RDF>
