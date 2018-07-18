@@ -4,31 +4,40 @@ from allure import step
 from selene.bys import *
 from selene.support.conditions import be, have
 from selene.support.jquery_style_selectors import s, ss
-
+from ui.actions import import_actions
 
 # Main and navigates elements for page
-__username = by_css(".username")
+__username = s(by_css(".username"))
 __popup_message = s(by_xpath("//div[@id='feedback-1']//div"))
 __groups_btn = s(by_xpath("//a[@title='Group test takers according to global features and classifications.']"))
+__delivery_btn = s(by_xpath("//a[@title='Prepare, publish deliveries sessions.']"))
 __items_btn = s(by_xpath("//a[@title='Create and design items and exercises.']"))
+__results_btn = s(by_xpath("//a[@title='View and format the collected results.']"))
 __tests_btn = s(by_xpath("//a[@title='Combine a selection of items into tests.']"))
 __test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
-__success_dialog_icon = by_css(".icon-success")
 __save_btn = s(by_name("Save"))
 
 # Group actions and group list elements
 __new_group_btn = s(by_css("#group-new>a"))
+__import_group_btn = s(by_xpath("//li[@id='group-import']/a"))
+
+__group_pattern = "//li[@title='Group']//li[@title='{}']/a"
+
+# Delivery actions and delivery list elements
+__new_delivery_btn = s(by("#delivery-new>a"))
 
 # Item actions and item list elements
 __new_item_btn = by_css("#item-new>a")
 __delete_item_btn = by_xpath("//li[@id='item-delete']/a")
-__import_item_btn = by_xpath("//li[@id='item-import']/a")
+__import_item_btn = s(by_xpath("//li[@id='item-import']/a"))
 
 __item_pattern = "//li[@title='Item']//li[@title='{}']/a"
 
 # Tests actions and tests list elements
 __new_test_btn = s(by_xpath("//li[@id='test-new']/a"))
 __test_pattern = "//li[@title='Test']//li[@title='{}']/a"
+__import_test_btn = s(by_xpath("//li[@id='test-import']/a"))
+__test_list = ss(by_xpath("//li[@title='Test']/ul/li"))
 
 # Test-taker actions
 __new_test_taker_btn = s(by_css("#testtaker-new>a"))
@@ -42,23 +51,14 @@ __testtaker_pattern = "//li[@title='Test-taker']//li[@title='{}']/a"
 __new_item_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
 __authoring_btn = by_xpath("//li[@title='Authoring']/a")
 
-# Import options area
-__content_package_radio_btn = by_id("importHandler_1")
-__browse_file_btn = by_xpath("//input[@type='file']")
-__file_type_label = by_id('file')
-__file_success_status_icon = by_css(".status.success")
-__import_button = by_css(".form-submitter")
-__import_continue_btn = by_id("import-continue")
-__status_message = by_css(".feedback-success")
-
 # Diallog buttons
 __delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
 
 
 def __wait_page_reloaded():
     #s(by_css(".loading-bar")).should(be.visible)
-    #s(by_css(".loading-bar")).should_not(be.visible)
     sleep(1)
+    s(by_css(".loading-bar")).should_not(be.visible)
 
 
 @step("Add testtaker to a group")
@@ -74,6 +74,34 @@ def create_new_group(group_name):
     __wait_page_reloaded()
     set_name_and_save(group_name)
     check_popup_message("Group saved")
+
+
+@step("Create new delivery")
+def create_new_delivery(test_name, delivery_name=None, group_name=None):
+    # Open delivery creation process
+    __new_delivery_btn.click()
+    __wait_page_reloaded()
+    # Choose test for delivery
+    __test_for_delivery_selection_field = s(by_id("select2-chosen-2"))
+    __test_for_deliver_input = s(by_id("s2id_autogen2_search"))
+    __test_for_delivery_element_pattern = "//div[text()='{}']"
+    __publish_button = s(by_css(".action-label"))
+    __test_for_delivery_selection_field.click()
+    __test_for_deliver_input.set_value(test_name)
+    s(by_xpath(__test_for_delivery_element_pattern.format(test_name))).click()
+    __publish_button.click()
+    check_popup_message("Publishing of \"{}\" completed".format(test_name))
+    # Change delivery name
+    if delivery_name:
+        __new_item_label_input.set_value(delivery_name)
+        ss(by_xpath("//button[text()='Save']"))[0].click()
+        check_popup_message("Delivery saved")
+    # Select groups for delivery
+    if group_name:
+        s(by_partial_link_text(group_name)).click()
+        s(by_partial_link_text(group_name)).should(have.css_class("checked"))
+        ss(by_xpath("//button[text()='Save']"))[1].click()
+        check_popup_message("Selection saved successfully")
 
 
 @step("Create new item")
@@ -117,6 +145,11 @@ def check_popup_message(message):
     __popup_message.should_not(be.visible)
 
 
+@step("Check target user loggined")
+def check_user_logged_in(username):
+    __username.should(have.text(username))
+
+
 @step("Delete target item")
 def delete_target_item(item_name):
     open_target_item(item_name)
@@ -126,43 +159,55 @@ def delete_target_item(item_name):
 
 @step("Get username for current user")
 def get_active_user():
-    return s(__username).text
+    return __username.text
 
 
-# TODO: Move to import page
-@step("Import item from disk")
-def import_item(item_name):
-    s(__import_item_btn).click()
-    s(__content_package_radio_btn).click()
-    s(__file_type_label).should(have.text("Import a QTI/APIP Content Package"))
-    # TODO: change for relative path
-    s(__browse_file_btn).set_value("/Users/alex/web/tao_tests/test_data/{}.zip".format(item_name))
-    s(__file_success_status_icon).should_be(be.visible)
-    s(__import_button).click()
-    s(__success_dialog_icon).should_be(be.visible)
-    s(__status_message).should(have.text("1 Item(s) of 1 imported from the given IMS QTI Package."))
-    s(__import_continue_btn).click()
+@step("Import group from disk")
+def import_group(group_name):
+    __import_group_btn.click()
+    import_actions.make_import(file_path=group_name, import_type="rdf",
+                               import_message="Data imported successfully")
     __wait_page_reloaded()
 
 
-# TODO: Move to import page
+@step("Import item from disk")
+def import_item(item_name):
+    __import_item_btn.click()
+    import_actions.make_import(file_path=item_name, import_type="zip",
+                               import_message="1 Item(s) of 1 imported from the given IMS QTI Package.")
+    __wait_page_reloaded()
+
+
 @step("Import testtaker from disk")
 def import_testtaker(item_name):
     __import_testtaker_btn.click()
-    s(__file_type_label).should(have.text("Import Metadata from RDF file"))
-    # TODO: change for relative path
-    s(__browse_file_btn).set_value("/Users/alex/web/tao_tests/test_data/{}.rdf".format(item_name))
-    s(__file_success_status_icon).should_be(be.visible)
-    s(__import_button).click()
-    s(__success_dialog_icon).should_be(be.visible)
-    s(__status_message).should(have.text("Data imported successfully"))
-    s(__import_continue_btn).click()
+    import_actions.make_import(file_path=item_name, import_type="rdf",
+                               import_message="Data imported successfully")
     __wait_page_reloaded()
+
+
+@step("Import test from disk")
+def import_test(test_name):
+    __import_test_btn.click()
+    import_actions.make_import(file_path=test_name, import_type="zip",
+                               import_message="IMS QTI Test Package successfully imported.")
+    __wait_page_reloaded()
+
+
+@step("Make logout")
+def logout():
+    s(by_id("logout")).click()
 
 
 @step("Open groups page")
 def open_groups():
     __groups_btn.click()
+    __wait_page_reloaded()
+
+
+@step("Navigate to Deliveries tab")
+def open_delivery():
+    __delivery_btn.click()
     __wait_page_reloaded()
 
 
@@ -176,6 +221,12 @@ def open_items():
 def open_item_authoring(item_name):
     open_target_item(item_name)
     s(__authoring_btn).click()
+
+
+@step("Open results page")
+def open_results():
+    __results_btn.click()
+    __wait_page_reloaded()
 
 
 @step("Open tests page")
@@ -195,6 +246,12 @@ def open_test_takers():
     __test_takers_btn.click()
     __wait_page_reloaded()
 
+
+@step("Open target group")
+def open_target_group(group_name):
+    s(by_xpath(__group_pattern.format(group_name))).click()
+    __wait_page_reloaded()
+    __new_item_label_input.should(have.value(group_name))
 
 @step("Open target item")
 def open_target_item(item_name):
@@ -216,11 +273,24 @@ def open_target_testtaker(testtaker_name):
     __wait_page_reloaded()
 
 
+@step("Rename target group")
+def rename_group(old_name, new_name):
+    open_target_group(old_name)
+    set_name_and_save(new_name)
+    check_popup_message("Group saved")
+
 @step("Rename target item")
 def rename_item(old_item_name, new_item_name):
     open_target_item(old_item_name)
     set_name_and_save(new_item_name)
     check_popup_message("Item saved")
+
+
+@step("Rename last test")
+def rename_test(old_test_name, new_test_name):
+    open_target_test(old_test_name)
+    set_name_and_save(new_test_name)
+    check_popup_message("Test saved")
 
 
 @step("Rename test taker")

@@ -1,3 +1,4 @@
+from time import sleep
 from selene import browser  # TODO: remove it letter
 from selenium.webdriver.common.action_chains import ActionChains  # TODO: remove it letter
 from allure import step
@@ -25,9 +26,11 @@ def add_choice():
     s(__work_area).should_be(be.visible)
     # re-write this code using selene.elements
     chain = ActionChains(browser.driver())
+    sleep(2)
     chain.click_and_hold(s(__choice_interaction_btn)).move_to_element(s(__work_area)).perform()
+    sleep(0.5)
     chain.release().perform()
-
+    sleep(0.5)
 
 @step("Select correct choice")
 def select_correct_choice(num=1):
