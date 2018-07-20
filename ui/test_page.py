@@ -12,11 +12,11 @@ __test_select_pattern = "//a/h3[text()='{}']"
 
 
 def is_delivery_availiable(delivery_name):
-    return s(by_xpath(__test_select_pattern.format(delivery_name))).is_displayed()
+    return s(by_xpath(__test_select_pattern.format(delivery_name.label))).is_displayed()
 
 
 def select_delivery_for_passing(delivery_name):
-    s(by_xpath(__test_select_pattern.format(delivery_name))).click()
+    s(by_xpath(__test_select_pattern.format(delivery_name.label))).click()
     s(by_css(".loading-bar")).should_not(be.visible)
 
 
@@ -34,8 +34,8 @@ __add_selection_btn = s(by_css(".itemref-placeholder"))
 __save_btn = by_id("saver")
 
 @step("Select item to include in test")
-def select_item(item_name):
-    s(by_link_text(item_name)).click()
+def select_item(item_obj):
+    s(by_link_text(item_obj.label)).click()
 
 
 @step("Add selected items to test")

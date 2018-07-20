@@ -1,17 +1,60 @@
 from framework.common.string_utilities import get_random_string
+from collections import namedtuple
 
-instance_id = 0
+Group = namedtuple("Group", ["label"])
+Group.__new__.__defaults__ = ("auto_group",)
+
+Delivery = namedtuple("Delivery", ["label", "test", "group"])
+Delivery.__new__.__defaults__ = ("auto_delivery", None, None)
+
+Item = namedtuple("Item", ["label"])
+Item.__new__.__defaults__ = ("auto_item",)
+
+Test = namedtuple("Test", ["label"])
+Test.__new__.__defaults__ = ("auto_test",)
+
+User = namedtuple("User", ["label", "login", "language", "password", "role"])
+User.__new__.__defaults__ = ("auto_testtaker", "auto_testtaker", "English", "change_me", "Test Taker")
 
 
-def create_testtacker():
-    test_id = get_random_string(4)
-    global instance_id
-    instance_id += 1
-    result = {
-        "Interface Language": "English",
-        "Label": "auto_testtacker_{}_{}".format(test_id, instance_id),
-        "Login": "testtacker_{}_{}".format(test_id, instance_id),
-        "Password": "change_me",
-        "Repeat password": "change_me",
-    }
-    return result
+class TaoObjectFactory(object):
+    __instance_id = 0
+    __group_pattern = "auto_group_{}_{}"
+    __delivery_pattern = "auto_delivery_{}_{}"
+    __item_pattern = "auto_item_{}_{}"
+    __test_pattern = "auto_test_{}_{}"
+    __testtaker_pattern = "auto_testtaker_{}_{}"
+
+    def __init__(self, test_id=None):
+        self.test_id = test_id if test_id else get_random_string(4)
+
+    def create_group(self):
+        self.__instance_id += 1
+        return Group(self.__group_pattern.format(self.test_id, self.__instance_id))
+
+    def create_delivery(self, test_obj=None, group_obj=None):
+        self.__instance_id += 1
+        return Delivery(label=self.__delivery_pattern.format(self.test_id, self.__instance_id),
+                        test=test_obj, group=group_obj)
+
+    def create_item(self):
+        self.__instance_id += 1
+        return Item(self.__item_pattern.format(self.test_id, self.__instance_id))
+
+    def create_test(self):
+        self.__instance_id += 1
+        return Test(self.__test_pattern.format(self.test_id, self.__instance_id))
+
+    def create_user(self, label=None, login=None, language=None, password=None, role=None):
+        self.__instance_id += 1
+        label = label if label else self.__testtaker_pattern.format(self.test_id, self.__instance_id)
+        login = login if login else label
+        parameters = {"label": label, "login": login}
+        if language:
+            parameters["language"] = language
+        if password:
+            parameters["password"] = password
+        if role:
+            parameters["role"] = role
+        result = User()
+        return result._replace(**parameters)

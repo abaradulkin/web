@@ -4,6 +4,7 @@ from allure import step
 from selene.bys import *
 from selene.support.conditions import be, have
 from selene.support.jquery_style_selectors import s, ss
+from selenium.common.exceptions import TimeoutException
 from ui.actions import import_actions
 
 # Main and navigates elements for page
@@ -16,6 +17,8 @@ __results_btn = s(by_xpath("//a[@title='View and format the collected results.']
 __tests_btn = s(by_xpath("//a[@title='Combine a selection of items into tests.']"))
 __test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
 __save_btn = s(by_name("Save"))
+__setting_btn = s("#settings")
+__users_btn = s("#users")
 
 # Group actions and group list elements
 __new_group_btn = s(by_css("#group-new>a"))
@@ -28,10 +31,11 @@ __new_delivery_btn = s(by("#delivery-new>a"))
 
 # Item actions and item list elements
 __new_item_btn = by_css("#item-new>a")
-__delete_item_btn = by_xpath("//li[@id='item-delete']/a")
+__delete_item_btn = by_xpath("//li[(@id='item-delete' or @id='item-class-delete') and not(contains(@class, 'hidden'))]/a")
 __import_item_btn = s(by_xpath("//li[@id='item-import']/a"))
 
 __item_pattern = "//li[@title='Item']//li[@title='{}']/a"
+__partial_item_pattern = "//li[@title='Item']//li[contains(@title,'{}')]/a"
 
 # Tests actions and tests list elements
 __new_test_btn = s(by_xpath("//li[@id='test-new']/a"))
@@ -51,97 +55,134 @@ __testtaker_pattern = "//li[@title='Test-taker']//li[@title='{}']/a"
 __new_item_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
 __authoring_btn = by_xpath("//li[@title='Authoring']/a")
 
+# Users page
+__users_tab = s(by_xpath("//a[@href='#panel-add_user']"))
+
+
 # Diallog buttons
 __delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
 
 
-def __wait_page_reloaded():
+def wait_page_reloaded():
     #s(by_css(".loading-bar")).should(be.visible)
     sleep(1)
-    s(by_css(".loading-bar")).should_not(be.visible)
+    s(by_css(".loading-bar")).should_not(be.visible, timeout=10)
 
 
 @step("Add testtaker to a group")
-def add_testtaker_to_group(testtaker_name):
-    s(by_xpath("//a[text()='{}']".format(testtaker_name))).click()
+def add_testtaker_to_group(testtaker_obj):
+    s(by_xpath("//a[text()='{}']".format(testtaker_obj.label))).click()
     s(by_xpath("//footer//button[text()=' Save']")).click()
     check_popup_message("Selection saved successfully")
 
 
 @step("Create new group")
-def create_new_group(group_name):
+def create_new_group(group_obj):
     __new_group_btn.click()
-    __wait_page_reloaded()
-    set_name_and_save(group_name)
+    wait_page_reloaded()
+    set_name_and_save(group_obj.label)
     check_popup_message("Group saved")
 
 
+# TODO: re-write this method like a not newbie
 @step("Create new delivery")
-def create_new_delivery(test_name, delivery_name=None, group_name=None):
+def create_new_delivery(delivery_obj):
     # Open delivery creation process
     __new_delivery_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
     # Choose test for delivery
+    assert delivery_obj.test, "Delivery {} should contains test obj to be created".format(delivery_obj.label)
     __test_for_delivery_selection_field = s(by_id("select2-chosen-2"))
     __test_for_deliver_input = s(by_id("s2id_autogen2_search"))
     __test_for_delivery_element_pattern = "//div[text()='{}']"
     __publish_button = s(by_css(".action-label"))
     __test_for_delivery_selection_field.click()
-    __test_for_deliver_input.set_value(test_name)
-    s(by_xpath(__test_for_delivery_element_pattern.format(test_name))).click()
+    __test_for_deliver_input.set_value(delivery_obj.test.label)
+    s(by_xpath(__test_for_delivery_element_pattern.format(delivery_obj.test.label))).click()
     __publish_button.click()
-    check_popup_message("Publishing of \"{}\" completed".format(test_name))
+    check_popup_message("Publishing of \"{}\" completed".format(delivery_obj.test.label))
     # Change delivery name
-    if delivery_name:
-        __new_item_label_input.set_value(delivery_name)
-        ss(by_xpath("//button[text()='Save']"))[0].click()
-        check_popup_message("Delivery saved")
+    __new_item_label_input.set_value(delivery_obj.label)
+    ss(by_xpath("//button[text()='Save']"))[0].click()
+    check_popup_message("Delivery saved")
     # Select groups for delivery
-    if group_name:
-        s(by_partial_link_text(group_name)).click()
-        s(by_partial_link_text(group_name)).should(have.css_class("checked"))
+    if delivery_obj.group:
+        s(by_partial_link_text(delivery_obj.group.label)).click()
+        s(by_partial_link_text(delivery_obj.group.label)).should(have.css_class("checked"))
         ss(by_xpath("//button[text()='Save']"))[1].click()
         check_popup_message("Selection saved successfully")
 
 
 @step("Create new item")
-def create_new_item(item_name):
+def create_new_item(item_obj):
     s(__new_item_btn).click()
-    __wait_page_reloaded()
-    set_name_and_save(item_name)
+    wait_page_reloaded()
+    set_name_and_save(item_obj.label)
     check_popup_message("Item saved")
 
 
 @step("Create new test")
-def create_new_test(test_name):
+def create_new_test(test_obj):
     __new_test_btn.click()
-    __wait_page_reloaded()
-    set_name_and_save(test_name)
+    wait_page_reloaded()
+    set_name_and_save(test_obj.label)
     check_popup_message("Test saved")
 
 
 @step("Create new test taker")
-def create_new_test_taker(test_taker):
+def create_new_test_taker(testtaker_obj):
     __new_test_taker_btn.click()
-    __wait_page_reloaded()
-    for key, value in test_taker.items():
-        if key == "Interface Language":
-            s(by_xpath(__testtaker_field_pattern.format(key, "select"))).click()
-            s(by_xpath(__language_select_patter.format(value))).click()
-        else:
-            s(by_xpath(__testtaker_field_pattern.format(key, "input"))).set_value(value)
+    wait_page_reloaded()
+
+    # TODO: make universal function
+    s(by_xpath(__testtaker_field_pattern.format("Interface Language", "select"))).click()
+    s(by_xpath(__language_select_patter.format(testtaker_obj.language))).click()
+    s(by_xpath(__testtaker_field_pattern.format("Login", "input"))).set_value(testtaker_obj.login)
+    s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(testtaker_obj.label)
+    s(by_xpath(__testtaker_field_pattern.format("Password", "input"))).set_value(testtaker_obj.password)
+    s(by_xpath(__testtaker_field_pattern.format("Repeat password", "input"))).set_value(testtaker_obj.password)
+
     __save_btn.click()
     check_popup_message("Test-taker saved")
 
 
+@step("Create new user")
+def create_new_user(user_obj):
+    __users_tab.click()
+    wait_page_reloaded()
+
+    s(by_xpath(__testtaker_field_pattern.format("Interface Language", "select"))).click()
+    s(by_xpath(__language_select_patter.format(user_obj.language))).click()
+    s(by_xpath(__testtaker_field_pattern.format("Login", "input"))).set_value(user_obj.login)
+    s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(user_obj.label)
+    s(by_xpath(__testtaker_field_pattern.format("Password", "input"))).set_value(user_obj.password)
+    s(by_xpath(__testtaker_field_pattern.format("Repeat password", "input"))).set_value(user_obj.password)
+    s(by_xpath("//label[@class='elt_desc' and text()='{}']".format(user_obj.role))).click()
+
+    __save_btn.click()
+    check_popup_message("User added")
+
+
 @step("Check item exists in list")
-def check_item_exists(item_name):
-    s(by_xpath(__item_pattern.format(item_name))).is_displayed()
+def check_item_exists(item_obj):
+    s(by_xpath(__item_pattern.format(item_obj.label))).is_displayed()
+
+
+@step("check user in users list")
+def is_user_in_list(user, role=None):
+    user_pattern = "//td[@class='login' and text()='{}']".format(user)
+    if role:
+        user_pattern = "{}/following-sibling::td[@class='roles' and text()='{}']".format(user_pattern, role)
+    try:
+        s(by_xpath(user_pattern)).should(be.visible)
+        return True
+    except TimeoutException:
+        return False
 
 
 @step("Check popup with message")
-def check_popup_message(message):
-    __popup_message.should(have.text(message))
+def check_popup_message(message, timeout=None):
+    __popup_message.should(have.text(message), timeout=timeout)
     __popup_message.should_not(be.visible)
 
 
@@ -151,10 +192,20 @@ def check_user_logged_in(username):
 
 
 @step("Delete target item")
-def delete_target_item(item_name):
-    open_target_item(item_name)
+def delete_target_item(item_obj):
+    open_target_item(item_obj)
     s(__delete_item_btn).click()
     s(__delete_diallog_ok_btn).click()
+
+
+def delete_item_starts_from(pattern):
+    for item in ss(by_xpath(__partial_item_pattern.format(pattern))):
+        item.click()
+        wait_page_reloaded()
+        assert pattern in __new_item_label_input.get_attribute("value")
+        s(__delete_item_btn).click()
+        s(__delete_diallog_ok_btn).click()
+        wait_page_reloaded()
 
 
 @step("Get username for current user")
@@ -167,7 +218,7 @@ def import_group(group_name):
     __import_group_btn.click()
     import_actions.make_import(file_path=group_name, import_type="rdf",
                                import_message="Data imported successfully")
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Import item from disk")
@@ -175,7 +226,7 @@ def import_item(item_name):
     __import_item_btn.click()
     import_actions.make_import(file_path=item_name, import_type="zip",
                                import_message="1 Item(s) of 1 imported from the given IMS QTI Package.")
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Import testtaker from disk")
@@ -183,7 +234,7 @@ def import_testtaker(item_name):
     __import_testtaker_btn.click()
     import_actions.make_import(file_path=item_name, import_type="rdf",
                                import_message="Data imported successfully")
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Import test from disk")
@@ -191,7 +242,7 @@ def import_test(test_name):
     __import_test_btn.click()
     import_actions.make_import(file_path=test_name, import_type="zip",
                                import_message="IMS QTI Test Package successfully imported.")
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Make logout")
@@ -202,75 +253,88 @@ def logout():
 @step("Open groups page")
 def open_groups():
     __groups_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Navigate to Deliveries tab")
 def open_delivery():
     __delivery_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Open items page")
 def open_items():
     __items_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Open item authoring")
-def open_item_authoring(item_name):
-    open_target_item(item_name)
+def open_item_authoring(item_obj):
+    open_target_item(item_obj)
     s(__authoring_btn).click()
 
 
 @step("Open results page")
 def open_results():
     __results_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
+
+
+@step("Open settings page")
+def open_settings():
+    __setting_btn.click()
+    wait_page_reloaded()
 
 
 @step("Open tests page")
 def open_tests():
     __tests_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Open test authoring")
-def open_test_authoring(item_name):
-    open_target_test(item_name)
+def open_test_authoring(item_obj):
+    open_target_test(item_obj)
     s(__authoring_btn).click()
 
 
 @step("Open test taker page")
 def open_test_takers():
     __test_takers_btn.click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
 
 
 @step("Open target group")
 def open_target_group(group_name):
     s(by_xpath(__group_pattern.format(group_name))).click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
     __new_item_label_input.should(have.value(group_name))
 
+
 @step("Open target item")
-def open_target_item(item_name):
-    s(by_xpath(__item_pattern.format(item_name))).click()
-    __wait_page_reloaded()
-    __new_item_label_input.should(have.value(item_name))
+def open_target_item(item_obj):
+    s(by_xpath(__item_pattern.format(item_obj.label))).click()
+    wait_page_reloaded()
+    __new_item_label_input.should(have.value(item_obj.label))
 
 
 @step("Open target test")
-def open_target_test(test_name):
-    s(by_xpath(__test_pattern.format(test_name))).click()
-    __wait_page_reloaded()
-    __new_item_label_input.should(have.value(test_name))
+def open_target_test(test_obj):
+    s(by_xpath(__test_pattern.format(test_obj.label))).click()
+    wait_page_reloaded()
+    __new_item_label_input.should(have.value(test_obj.label))
 
 
 @step("Open target test taker")
 def open_target_testtaker(testtaker_name):
     s(by_xpath(__testtaker_pattern.format(testtaker_name))).click()
-    __wait_page_reloaded()
+    wait_page_reloaded()
+
+
+@step("Open users page")
+def open_users():
+    __users_btn.click()
+    wait_page_reloaded()
 
 
 @step("Rename target group")
@@ -296,13 +360,13 @@ def rename_test(old_test_name, new_test_name):
 @step("Rename test taker")
 def rename_testtaker(old_name, new_name):
     open_target_testtaker(old_name)
-    __wait_page_reloaded()
+    wait_page_reloaded()
     s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(new_name)
     __save_btn.click()
     check_popup_message("Test-taker saved")
 
 
 @step("Set item name, save and check popup message")
-def set_name_and_save(item_name):
-    __new_item_label_input.set_value(item_name)
+def set_name_and_save(label):
+    __new_item_label_input.set_value(label)
     __save_btn.click()

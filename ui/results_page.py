@@ -10,8 +10,8 @@ _score_list = ss(by_xpath("//td[text()='SCORE']/following-sibling::td[@class='da
 
 
 def select_target_result(delivery_name, taker_name):
-    s(by_xpath(__delivary_btn_pattern.format(delivery_name))).click()
-    s(by_xpath(__result_item_tattern.format(taker_name))).click()
+    s(by_xpath(__delivary_btn_pattern.format(delivery_name.label))).click()
+    s(by_xpath(__result_item_tattern.format(taker_name.label))).click()
 
 
 def get_item_score_by_index(index):
