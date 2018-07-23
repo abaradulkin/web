@@ -31,4 +31,4 @@ def install_plugin(plugin_name):
     wait_page_reloaded()
     s(by_xpath("//button/span[text()='Yes']")).click()
     check_popup_message("Extension {} has been installed".format(plugin_name), timeout=30)
-    s(by_css(".loading-bar")).should_not(be.visible, timeout=60)
+    wait_page_reloaded(60)

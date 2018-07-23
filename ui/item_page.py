@@ -1,24 +1,20 @@
-from time import sleep
 from selene import browser  # TODO: remove it letter
 from selenium.webdriver.common.action_chains import ActionChains  # TODO: remove it letter
-from allure import step
-from selene.bys import *
-from selene.support.conditions import be, have
-from selene.support.jquery_style_selectors import s
 
-from ui import main_page
+from ui.main_page import *
+from ui.actions import import_actions
 
-
-__work_area = s(by_css(".item-editor-drop-area"))
-__save_btn = s(by_xpath("//li[@title='Save the item']"))
-__choice_interaction_btn = s(by_css(".icon-choice"))
-
-__response_btn = s(by_xpath("//span[@data-state='answer']"))
 __choice_checkbox_pattern = "//li[@data-identifier='choice_{}']"
-
-__widget_interaction = s(by_css(".widget-blockInteraction"))
+__choice_interaction_btn = s(by_css(".icon-choice"))
 __delete_interaction_btn = s(by_xpath("//span[@title='Choice Interaction']/following::div[@title='delete']"))
-
+__item_pattern = "//li[@title='Item']//li[@title='{}']/a"
+__new_item_btn = by_css("#item-new>a")
+__response_btn = s(by_xpath("//span[@data-state='answer']"))
+__save_btn = s(by_xpath("//li[@title='Save the item']"))
+__widget_interaction = s(by_css(".widget-blockInteraction"))
+__work_area = s(by_css(".item-editor-drop-area"))
+__delete_item_btn = by_xpath("//li[(@id='item-delete' or @id='item-class-delete') and not(contains(@class, 'hidden'))]/a")
+__import_item_btn = s(by_xpath("//li[@id='item-import']/a"))
 
 
 @step("Add choice to item")
@@ -30,15 +26,45 @@ def add_choice():
     chain.click_and_hold(__choice_interaction_btn).move_to_element(__work_area).perform()
     chain.release().perform()
 
-@step("Select correct choice")
-def select_correct_choice(num=1):
-    __response_btn.click()
-    s(by_xpath(__choice_checkbox_pattern.format(num))).click()
-
 
 @step("Check that choice selected")
 def check_choice_selected(num=1):
     s(by_xpath(__choice_checkbox_pattern.format(num))).should_have(have.css_class("user-selected"))
+
+
+@step("Check item exists in list")
+def is_item_exists(item_obj):
+    try:
+        return s(by_xpath(__item_pattern.format(item_obj.label))).is_displayed()
+    except TimeoutException:
+        return False
+
+
+@step("Import item from disk")
+def import_item(item_name):
+    __import_item_btn.click()
+    import_actions.make_import(file_path=item_name, import_type="zip",
+                               import_message="1 Item(s) of 1 imported from the given IMS QTI Package.")
+    wait_page_reloaded()
+
+
+@step("Click on deletion button and accept")
+def make_deletion_action():
+    s(__delete_item_btn).click()
+    s(delete_diallog_ok_btn).click()
+
+
+@step("Open item authoring")
+def open_item_authoring(item_obj):
+    open_target_item(item_obj)
+    open_authoring()
+
+
+@step("Open target item")
+def open_target_item(item_obj):
+    s(by_xpath(__item_pattern.format(item_obj.label))).click()
+    wait_page_reloaded()
+    assert item_obj.label == get_current_item_name()
 
 
 @step("Remove choice from item")
@@ -50,4 +76,16 @@ def remove_choice():
 @step("Save the item")
 def save_item():
     __save_btn.click()
-    main_page.check_popup_message("Your item has been saved")
+    check_popup_message("Your item has been saved")
+
+
+@step("Select correct choice")
+def select_correct_choice(num=1):
+    __response_btn.click()
+    s(by_xpath(__choice_checkbox_pattern.format(num))).click()
+
+
+@step("Start creation new Item")
+def start_creation_new_item():
+    s(__new_item_btn).click()
+    wait_page_reloaded()

@@ -5,7 +5,7 @@ from selene.bys import *
 from selene.support.conditions import be, have
 from selene.support.jquery_style_selectors import s, ss
 from selenium.common.exceptions import TimeoutException
-from ui.actions import import_actions
+from ui.actions import import_actions  # TODO: remove it later
 
 # Main and navigates elements for page
 __username = s(by_css(".username"))
@@ -19,6 +19,8 @@ __test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
 __save_btn = s(by_name("Save"))
 __setting_btn = s("#settings")
 __users_btn = s("#users")
+__current_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
+
 
 # Group actions and group list elements
 __new_group_btn = s(by_css("#group-new>a"))
@@ -30,12 +32,7 @@ __group_pattern = "//li[@title='Group']//li[@title='{}']/a"
 __new_delivery_btn = s(by("#delivery-new>a"))
 
 # Item actions and item list elements
-__new_item_btn = by_css("#item-new>a")
-__delete_item_btn = by_xpath("//li[(@id='item-delete' or @id='item-class-delete') and not(contains(@class, 'hidden'))]/a")
-__import_item_btn = s(by_xpath("//li[@id='item-import']/a"))
 
-__item_pattern = "//li[@title='Item']//li[@title='{}']/a"
-__partial_item_pattern = "//li[@title='Item']//li[contains(@title,'{}')]/a"
 
 # Tests actions and tests list elements
 __new_test_btn = s(by_xpath("//li[@id='test-new']/a"))
@@ -52,7 +49,6 @@ __import_testtaker_btn = s(by_css("#testtaker-import>a"))
 __testtaker_pattern = "//li[@title='Test-taker']//li[@title='{}']/a"
 
 # Item editing area
-__new_item_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
 __authoring_btn = by_xpath("//li[@title='Authoring']/a")
 
 # Users page
@@ -60,15 +56,36 @@ __users_tab = s(by_xpath("//a[@href='#panel-add_user']"))
 
 
 # Diallog buttons
-__delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
+delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
 
 
-def wait_page_reloaded():
+# Basic operations wih general buttons, dialogs and sync
+def wait_page_reloaded(timeout=10):
     #s(by_css(".loading-bar")).should(be.visible)
     sleep(1)
-    s(by_css(".loading-bar")).should_not(be.visible, timeout=10)
+    s(by_css(".loading-bar")).should_not(be.visible, timeout=timeout)
+    s(by_css(".loading")).should_not(be.visible, timeout=timeout)
 
 
+@step("Check popup with message")
+def check_popup_message(message, timeout=None):
+    __popup_message.should(have.text(message), timeout=timeout)
+    __popup_message.should_not(be.visible)
+
+
+@step("Set item name, save and check popup message")
+def set_name_and_save(label, popup_msg=None):
+    __current_label_input.set_value(label)
+    __save_btn.click()
+    if popup_msg:
+        check_popup_message(popup_msg)
+
+
+def get_current_item_name():
+    return __current_label_input.get_attribute("value")
+
+
+#################################
 @step("Add testtaker to a group")
 def add_testtaker_to_group(testtaker_obj):
     s(by_xpath("//a[text()='{}']".format(testtaker_obj.label))).click()
@@ -102,7 +119,7 @@ def create_new_delivery(delivery_obj):
     __publish_button.click()
     check_popup_message("Publishing of \"{}\" completed".format(delivery_obj.test.label))
     # Change delivery name
-    __new_item_label_input.set_value(delivery_obj.label)
+    __current_label_input.set_value(delivery_obj.label)
     ss(by_xpath("//button[text()='Save']"))[0].click()
     check_popup_message("Delivery saved")
     # Select groups for delivery
@@ -111,14 +128,6 @@ def create_new_delivery(delivery_obj):
         s(by_partial_link_text(delivery_obj.group.label)).should(have.css_class("checked"))
         ss(by_xpath("//button[text()='Save']"))[1].click()
         check_popup_message("Selection saved successfully")
-
-
-@step("Create new item")
-def create_new_item(item_obj):
-    s(__new_item_btn).click()
-    wait_page_reloaded()
-    set_name_and_save(item_obj.label)
-    check_popup_message("Item saved")
 
 
 @step("Create new test")
@@ -163,11 +172,6 @@ def create_new_user(user_obj):
     check_popup_message("User added")
 
 
-@step("Check item exists in list")
-def check_item_exists(item_obj):
-    s(by_xpath(__item_pattern.format(item_obj.label))).is_displayed()
-
-
 @step("check user in users list")
 def is_user_in_list(user, role=None):
     user_pattern = "//td[@class='login' and text()='{}']".format(user)
@@ -180,32 +184,9 @@ def is_user_in_list(user, role=None):
         return False
 
 
-@step("Check popup with message")
-def check_popup_message(message, timeout=None):
-    __popup_message.should(have.text(message), timeout=timeout)
-    __popup_message.should_not(be.visible)
-
-
-@step("Check target user loggined")
-def check_user_logged_in(username):
-    __username.should(have.text(username))
-
-
-@step("Delete target item")
-def delete_target_item(item_obj):
-    open_target_item(item_obj)
-    s(__delete_item_btn).click()
-    s(__delete_diallog_ok_btn).click()
-
-
-def delete_item_starts_from(pattern):
-    for item in ss(by_xpath(__partial_item_pattern.format(pattern))):
-        item.click()
-        wait_page_reloaded()
-        assert pattern in __new_item_label_input.get_attribute("value")
-        s(__delete_item_btn).click()
-        s(__delete_diallog_ok_btn).click()
-        wait_page_reloaded()
+@step("Get current user name")
+def get_loggined_username():
+    return __username.text
 
 
 @step("Get username for current user")
@@ -218,14 +199,6 @@ def import_group(group_name):
     __import_group_btn.click()
     import_actions.make_import(file_path=group_name, import_type="rdf",
                                import_message="Data imported successfully")
-    wait_page_reloaded()
-
-
-@step("Import item from disk")
-def import_item(item_name):
-    __import_item_btn.click()
-    import_actions.make_import(file_path=item_name, import_type="zip",
-                               import_message="1 Item(s) of 1 imported from the given IMS QTI Package.")
     wait_page_reloaded()
 
 
@@ -250,6 +223,11 @@ def logout():
     s(by_id("logout")).click()
 
 
+@step("Open authoring")
+def open_authoring():
+    s(__authoring_btn).click()
+
+
 @step("Open groups page")
 def open_groups():
     __groups_btn.click()
@@ -266,12 +244,6 @@ def open_delivery():
 def open_items():
     __items_btn.click()
     wait_page_reloaded()
-
-
-@step("Open item authoring")
-def open_item_authoring(item_obj):
-    open_target_item(item_obj)
-    s(__authoring_btn).click()
 
 
 @step("Open results page")
@@ -308,21 +280,14 @@ def open_test_takers():
 def open_target_group(group_name):
     s(by_xpath(__group_pattern.format(group_name))).click()
     wait_page_reloaded()
-    __new_item_label_input.should(have.value(group_name))
-
-
-@step("Open target item")
-def open_target_item(item_obj):
-    s(by_xpath(__item_pattern.format(item_obj.label))).click()
-    wait_page_reloaded()
-    __new_item_label_input.should(have.value(item_obj.label))
+    __current_label_input.should(have.value(group_name))
 
 
 @step("Open target test")
 def open_target_test(test_obj):
     s(by_xpath(__test_pattern.format(test_obj.label))).click()
     wait_page_reloaded()
-    __new_item_label_input.should(have.value(test_obj.label))
+    __current_label_input.should(have.value(test_obj.label))
 
 
 @step("Open target test taker")
@@ -343,12 +308,6 @@ def rename_group(old_name, new_name):
     set_name_and_save(new_name)
     check_popup_message("Group saved")
 
-@step("Rename target item")
-def rename_item(old_item_name, new_item_name):
-    open_target_item(old_item_name)
-    set_name_and_save(new_item_name)
-    check_popup_message("Item saved")
-
 
 @step("Rename last test")
 def rename_test(old_test_name, new_test_name):
@@ -364,9 +323,3 @@ def rename_testtaker(old_name, new_name):
     s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(new_name)
     __save_btn.click()
     check_popup_message("Test-taker saved")
-
-
-@step("Set item name, save and check popup message")
-def set_name_and_save(label):
-    __new_item_label_input.set_value(label)
-    __save_btn.click()
