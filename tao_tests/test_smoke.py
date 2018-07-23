@@ -5,6 +5,7 @@ from selene import browser, config
 from selene.helpers import env
 
 from ui import login_page, main_page, item_page, test_page, results_page, settings_page
+from step import item_steps
 from utilities.factory import TaoObjectFactory
 
 
@@ -35,18 +36,18 @@ class TestSmoke(BaseTest):
         login_page.make_login(self.admin_name, self.admin_name)
 
     def test_logging_in_as_administrator(self):
-        main_page.check_user_logged_in(self.admin_name)
+        assert self.admin_name == main_page.get_loggined_username()
 
     def test_items_creation(self):
         main_page.open_items()
         for item in self.suite_items:
-            main_page.create_new_item(item)
-            main_page.check_item_exists(item)
+            item_steps.create_new_item(item)
+            assert item_page.is_item_exists(item)
 
     def test_adding_interaction_to_item(self):
         for item in self.suite_items:
             main_page.open_items()
-            main_page.open_item_authoring(item)
+            item_page.open_item_authoring(item)
             item_page.add_choice()
             item_page.select_correct_choice(1)
             item_page.check_choice_selected(1)
@@ -54,14 +55,13 @@ class TestSmoke(BaseTest):
 
     def test_remove_interaction_to_item(self):
         main_page.open_items()
-        main_page.open_item_authoring(self.suite_items[-1])
+        item_page.open_item_authoring(self.suite_items[-1])
         item_page.remove_choice()
         item_page.save_item()
 
     def test_item_deletion(self):
-        main_page.open_items()
-        main_page.delete_target_item(self.suite_items[-1])
-        assert not main_page.check_item_exists(self.suite_items[-1])
+        item_steps.delete_target_item(self.suite_items[-1])
+        assert not item_page.is_item_exists(self.suite_items[-1])
 
     def test_test_creation(self):
         main_page.open_tests()
@@ -112,13 +112,14 @@ class TestSmoke(BaseTest):
         assert 0 == results_page.get_item_score_by_index(2)
 
 
-@feature("Smoke")
-@severity("critical")
-class TestProctorSmoke(BaseTest):
-    def setup(self):
-        super().setup()
-        login_page.make_login(self.admin_name, self.admin_name)
+#@feature("Smoke")
+#@severity("critical")
+#class TestProctoringSmoke(BaseTest):
+#    def setup(self):
+#        super().setup()
+#        login_page.make_login(self.admin_name, self.admin_name)
 
+    @feature("Proctoring")
     def test_install_proctoring(self):
         main_page.open_settings()
         plugin_name = "taoProctoring"
@@ -128,6 +129,7 @@ class TestProctorSmoke(BaseTest):
         main_page.open_settings()
         assert settings_page.is_plugin_installed(plugin_name)
 
+    @feature("Proctoring")
     def test_create_proctor(self):
         suite_proctor = self.factory.create_user(role="Proctor")
         main_page.open_users()
