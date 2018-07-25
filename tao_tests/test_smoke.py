@@ -56,7 +56,7 @@ class TestSmoke(BaseTest):
         login_page.make_login(self.admin_name, self.admin_pass)
         for item in self.suite_items:
             admin_steps.create_new_item(item)
-            assert item_page.is_item_in_list(item.label)
+            assert item_page.is_object_in_list(item.label)
 
     def test_add_interaction_to_item(self):
         login_page.make_login(self.admin_name, self.admin_pass)
@@ -65,14 +65,13 @@ class TestSmoke(BaseTest):
             assert item_page.is_interaction_on_item()
 
     def test_remove_interaction_from_item(self):
-        main_page.open_items()
-        item_page.open_item_authoring(self.suite_items[-1])
-        item_page.remove_choice()
-        item_page.save_item()
+        login_page.make_login(self.admin_name, self.admin_pass)
+        admin_steps.remove_interaction_from_item(self.suite_items[-1])
+        assert not item_page.is_interaction_on_item()
 
     def test_delete_item(self):
         admin_steps.delete_target_item(self.suite_items[-1])
-        assert not item_page.is_item_in_list(self.suite_items[-1].label)
+        assert not item_page.is_object_in_list(self.suite_items[-1].label)
 
     def test_create_test(self):
         main_page.open_tests()
@@ -173,4 +172,4 @@ class TestSmoke(BaseTest):
     @feature("LTI")
     def test_create_lti(self):
         admin_steps.create_new_lti(self.suite_lti)
-        assert main_page.is_item_in_list(self.suite_lti.label)
+        assert main_page.is_object_in_list(self.suite_lti.label)

@@ -17,6 +17,7 @@ __delete_item_btn = by_xpath("//li[(@id='item-delete' or @id='item-class-delete'
 __import_item_btn = s(by_xpath("//li[@id='item-import']/a"))
 __interaction_div = s(by_xpath("//div[@data-qti-class='choiceInteraction']"))
 
+
 @step("Add choice to item")
 def add_choice():
     # re-write this code using selene.elements
@@ -35,7 +36,8 @@ def check_choice_selected(num=1):
 @step("Check hac item an interaction")
 def is_interaction_on_item():
     try:
-        return __interaction_div.is_displayed()
+        __interaction_div.should(be.visible, timeout=1)
+        return True
     except TimeoutException:
         return False
 
@@ -52,12 +54,6 @@ def import_item(item_name):
 def make_deletion_action():
     s(__delete_item_btn).click()
     s(delete_diallog_ok_btn).click()
-
-
-@step("Open item authoring")
-def open_item_authoring(label):
-    open_target_item(label)
-    open_authoring()
 
 
 @step("Save authoring")

@@ -4,7 +4,7 @@ from allure import step
 from selene.bys import *
 from selene.support.conditions import be, have
 from selene.support.jquery_style_selectors import s, ss
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from ui.actions import import_actions  # TODO: remove it later
 
 # Main and navigates elements for page
@@ -79,7 +79,7 @@ def get_current_item_name():
 
 
 @step("Create")
-def finish_Creation_Action():
+def finish_creation_action():
     __create_btn.click()
 
 
@@ -206,7 +206,7 @@ def is_user_in_list(user, role=None):
 
 
 @step("Check is item in list")
-def is_item_in_list(item_name):
+def is_object_in_list(item_name):
     try:
         return s(by_xpath("//li[@title='{}']/a".format(item_name))).is_displayed()
     except TimeoutException:
