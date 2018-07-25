@@ -70,10 +70,12 @@ class TestSmoke(BaseTest):
         assert not item_page.is_interaction_on_item()
 
     def test_delete_item(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         admin_steps.delete_target_item(self.suite_items[-1])
         assert not item_page.is_object_in_list(self.suite_items[-1].label)
 
     def test_create_test(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_tests()
         main_page.create_new_test(self.suite_test)
         main_page.open_test_authoring(self.suite_test)
@@ -82,16 +84,19 @@ class TestSmoke(BaseTest):
         test_page.add_selected_items()
         test_page.save_test()
 
-    def test_create_test_taker(self):
-        main_page.open_test_takers()
-        main_page.create_new_test_taker(self.suite_testtaker)
+    def test_create_testtaker(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
+        admin_steps.create_newtest_taker(self.suite_testtaker)
+        assert main_page.is_object_in_list(self.suite_testtaker.label)
 
     def test_create_group(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_groups()
         main_page.create_new_group(self.suite_group)
         main_page.add_testtaker_to_group(self.suite_testtaker)
 
     def test_create_delivery(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_delivery()
         # TODO: realise delivery object as class, instead of namedtouple
         # self.suite_delivery.group = self.suite_group
@@ -99,12 +104,10 @@ class TestSmoke(BaseTest):
         admin_steps.create_new_delivery(self.suite_delivery)
 
     def test_login_as_testtaker(self):
-        main_page.logout()
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
         test_page.is_delivery_availiable(self.suite_delivery)
 
     def test_pass_test_as_testtaker(self):
-        main_page.logout()
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
         test_page.select_delivery_for_passing(self.suite_delivery)
         test_page.choose_answer()

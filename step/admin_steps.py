@@ -1,6 +1,6 @@
 from allure import step
 
-from ui import main_page, item_page, delivery_page, lti_page
+from ui import main_page, item_page, delivery_page, lti_page, testtaker_page
 
 
 @step("Add interaction to item")
@@ -36,6 +36,21 @@ def create_new_item(item_obj):
     item_page.start_creation_new_item()
     item_page.set_name_and_save(label=item_obj.label, popup_msg="Item saved")
     item_page.wait_page_reloaded()
+
+
+@step("Create new testtaker")
+def create_newtest_taker(testtaker_obj):
+    main_page.open_test_takers()
+    testtaker_page.start_testtaker_creation()
+
+    testtaker_page.select_language(testtaker_obj.language)
+    testtaker_page.fill_login(testtaker_obj.login)
+    testtaker_page.fill_label(testtaker_obj.label)
+    testtaker_page.fill_label(testtaker_obj.label)
+    testtaker_page.fill_password(testtaker_obj.password)
+
+    testtaker_page.save_current_object()
+    testtaker_page.check_popup_message("Test-taker saved")
 
 
 @step("Create new LTI")

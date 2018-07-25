@@ -37,14 +37,6 @@ __test_pattern = "//li[@title='Test']//li[@title='{}']/a"
 __import_test_btn = s(by_xpath("//li[@id='test-import']/a"))
 __test_list = ss(by_xpath("//li[@title='Test']/ul/li"))
 
-# Test-taker actions
-__new_test_taker_btn = s(by_css("#testtaker-new>a"))
-__testtaker_field_pattern = "//label[text()='{}']/following-sibling::{}"
-__language_select_patter = "//option[text()='{}']"
-__import_testtaker_btn = s(by_css("#testtaker-import>a"))
-
-__testtaker_pattern = "//li[@title='Test-taker']//li[@title='{}']/a"
-
 # Item editing area
 __authoring_btn = by_xpath("//li[@title='Authoring']/a")
 
@@ -118,23 +110,6 @@ def create_new_test(test_obj):
     wait_page_reloaded()
     set_name_and_save(test_obj.label)
     check_popup_message("Test saved")
-
-
-@step("Create new test taker")
-def create_new_test_taker(testtaker_obj):
-    __new_test_taker_btn.click()
-    wait_page_reloaded()
-
-    # TODO: make universal function
-    s(by_xpath(__testtaker_field_pattern.format("Interface Language", "select"))).click()
-    s(by_xpath(__language_select_patter.format(testtaker_obj.language))).click()
-    s(by_xpath(__testtaker_field_pattern.format("Login", "input"))).set_value(testtaker_obj.login)
-    s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(testtaker_obj.label)
-    s(by_xpath(__testtaker_field_pattern.format("Password", "input"))).set_value(testtaker_obj.password)
-    s(by_xpath(__testtaker_field_pattern.format("Repeat password", "input"))).set_value(testtaker_obj.password)
-
-    __save_btn.click()
-    check_popup_message("Test-taker saved")
 
 
 @step("Create new user")
