@@ -10,6 +10,9 @@ Delivery.__new__.__defaults__ = ("auto_delivery", None, None)
 Item = namedtuple("Item", ["label"])
 Item.__new__.__defaults__ = ("auto_item",)
 
+LTI = namedtuple("LTI", ["label", "key", "secret"])
+LTI.__new__.__defaults__ = ("auto_item", None, None)
+
 Test = namedtuple("Test", ["label"])
 Test.__new__.__defaults__ = ("auto_test",)
 
@@ -40,6 +43,12 @@ class TaoObjectFactory(object):
     def create_item(self):
         self.__instance_id += 1
         return Item(self.__item_pattern.format(self.test_id, self.__instance_id))
+
+    def create_lti(self):
+        self.__instance_id += 1
+        return LTI(label="auto_lti_{}_{}".format(self.test_id, self.__instance_id),
+                   key="auto_lti_key_{}_{}".format(self.test_id, self.__instance_id),
+                   secret="auto_lti_secret_{}_{}".format(self.test_id, self.__instance_id))
 
     def create_test(self):
         self.__instance_id += 1

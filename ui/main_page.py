@@ -18,6 +18,7 @@ __tests_btn = s(by_xpath("//a[@title='Combine a selection of items into tests.']
 __test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
 #__save_btn = s(by_name("Save"))
 __save_btn = ss(by_xpath("//button[contains(text(), 'Save')]"))[0]
+__create_btn = s("a>.icon-save")
 __setting_btn = s("#settings")
 __users_btn = s("#users")
 __current_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
@@ -55,6 +56,9 @@ __users_tab = s(by_xpath("//a[@href='#panel-add_user']"))
 delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
 ok_btn = s(by_xpath("//button[text()='OK']"))
 
+# Settings page
+__lti_tab = s(by_xpath("//a[@title='LTI Consumers']"))
+
 
 # Basic operations wih general buttons, dialogs and sync
 def wait_page_reloaded(timeout=10):
@@ -70,16 +74,26 @@ def check_popup_message(message, timeout=None):
     __popup_message.should_not(be.visible)
 
 
-@step("Set item name, save and check popup message")
-def set_name_and_save(label, popup_msg=None):
-    __current_label_input.set_value(label)
-    __save_btn.click()
-    if popup_msg:
-        check_popup_message(popup_msg)
-
-
 def get_current_item_name():
     return __current_label_input.get_attribute("value")
+
+
+@step("Create")
+def finish_Creation_Action():
+    __create_btn.click()
+
+
+@step("Save")
+def save_current_object():
+    __save_btn.click()
+
+
+@step("Set item name and save")
+def set_name_and_save(label, popup_msg=None):
+    __current_label_input.set_value(label)
+    save_current_object()
+    if popup_msg:
+        check_popup_message(popup_msg)
 
 
 #################################
@@ -96,35 +110,6 @@ def create_new_group(group_obj):
     wait_page_reloaded()
     set_name_and_save(group_obj.label)
     check_popup_message("Group saved")
-
-
-# TODO: re-write this method like a not newbie
-@step("Create new delivery")
-def create_new_delivery(delivery_obj):
-    # Open delivery creation process
-    __new_delivery_btn.click()
-    wait_page_reloaded()
-    # Choose test for delivery
-    assert delivery_obj.test, "Delivery {} should contains test obj to be created".format(delivery_obj.label)
-    __test_for_delivery_selection_field = s(by_id("select2-chosen-2"))
-    __test_for_deliver_input = s(by_id("s2id_autogen2_search"))
-    __test_for_delivery_element_pattern = "//div[text()='{}']"
-    __publish_button = s(by_css(".action-label"))
-    __test_for_delivery_selection_field.click()
-    __test_for_deliver_input.set_value(delivery_obj.test.label)
-    s(by_xpath(__test_for_delivery_element_pattern.format(delivery_obj.test.label))).click()
-    __publish_button.click()
-    check_popup_message("Publishing of \"{}\" completed".format(delivery_obj.test.label))
-    # Change delivery name
-    __current_label_input.set_value(delivery_obj.label)
-    ss(by_xpath("//button[text()='Save']"))[0].click()
-    check_popup_message("Delivery saved")
-    # Select groups for delivery
-    if delivery_obj.group:
-        s(by_partial_link_text(delivery_obj.group.label)).click()
-        s(by_partial_link_text(delivery_obj.group.label)).should(have.css_class("checked"))
-        ss(by_xpath("//button[text()='Save']"))[1].click()
-        check_popup_message("Selection saved successfully")
 
 
 @step("Create new test")
@@ -254,6 +239,11 @@ def open_delivery():
 def open_items():
     __items_btn.click()
     wait_page_reloaded()
+
+
+@step("Open Settings > LTI tab")
+def open_lti_tab():
+    __lti_tab.click()
 
 
 @step("Open results page")

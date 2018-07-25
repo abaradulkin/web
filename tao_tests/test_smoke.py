@@ -174,3 +174,8 @@ class TestSmoke(BaseTest):
         browser.driver().refresh()
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
         assert test_page.get_delivery_popup_message(self.suite_delivery) == "Authorized, you may proceed"
+
+    @feature("LTI")
+    def test_create_lti(self):
+        admin_steps.create_new_lti(self.suite_lti)
+        assert main_page.is_item_in_list(self.suite_lti.label)
