@@ -16,23 +16,19 @@ __items_btn = s(by_xpath("//a[@title='Create and design items and exercises.']")
 __results_btn = s(by_xpath("//a[@title='View and format the collected results.']"))
 __tests_btn = s(by_xpath("//a[@title='Combine a selection of items into tests.']"))
 __test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
-__save_btn = s(by_name("Save"))
+#__save_btn = s(by_name("Save"))
+__save_btn = ss(by_xpath("//button[contains(text(), 'Save')]"))[0]
 __setting_btn = s("#settings")
 __users_btn = s("#users")
 __current_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
-
+__logout_btn = s("#logout")
+__home_btn = s("#home")
 
 # Group actions and group list elements
 __new_group_btn = s(by_css("#group-new>a"))
 __import_group_btn = s(by_xpath("//li[@id='group-import']/a"))
 
 __group_pattern = "//li[@title='Group']//li[@title='{}']/a"
-
-# Delivery actions and delivery list elements
-__new_delivery_btn = s(by("#delivery-new>a"))
-
-# Item actions and item list elements
-
 
 # Tests actions and tests list elements
 __new_test_btn = s(by_xpath("//li[@id='test-new']/a"))
@@ -57,6 +53,7 @@ __users_tab = s(by_xpath("//a[@href='#panel-add_user']"))
 
 # Diallog buttons
 delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
+ok_btn = s(by_xpath("//button[text()='OK']"))
 
 
 # Basic operations wih general buttons, dialogs and sync
@@ -172,18 +169,6 @@ def create_new_user(user_obj):
     check_popup_message("User added")
 
 
-@step("check user in users list")
-def is_user_in_list(user, role=None):
-    user_pattern = "//td[@class='login' and text()='{}']".format(user)
-    if role:
-        user_pattern = "{}/following-sibling::td[@class='roles' and text()='{}']".format(user_pattern, role)
-    try:
-        s(by_xpath(user_pattern)).should(be.visible)
-        return True
-    except TimeoutException:
-        return False
-
-
 @step("Get current user name")
 def get_loggined_username():
     return __username.text
@@ -192,6 +177,11 @@ def get_loggined_username():
 @step("Get username for current user")
 def get_active_user():
     return __username.text
+
+
+@step("Return to home")
+def home():
+    __home_btn.click()
 
 
 @step("Import group from disk")
@@ -218,9 +208,29 @@ def import_test(test_name):
     wait_page_reloaded()
 
 
+@step("Check user in users list")
+def is_user_in_list(user, role=None):
+    user_pattern = "//td[@class='login' and text()='{}']".format(user)
+    if role:
+        user_pattern = "{}/following-sibling::td[@class='roles' and text()='{}']".format(user_pattern, role)
+    try:
+        s(by_xpath(user_pattern)).should(be.visible)
+        return True
+    except TimeoutException:
+        return False
+
+
+@step("Check is item in list")
+def is_item_in_list(item_name):
+    try:
+        return s(by_xpath("//li[@title='{}']/a".format(item_name))).is_displayed()
+    except TimeoutException:
+        return False
+
+
 @step("Make logout")
 def logout():
-    s(by_id("logout")).click()
+    __logout_btn.click()
 
 
 @step("Open authoring")

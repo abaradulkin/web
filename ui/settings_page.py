@@ -12,15 +12,17 @@ from ui.main_page import *
 __apply_btn = s("#installButton")
 __plugin_checkbox_pattern = "#{}>td>.icon-checkbox-checked"
 __plugin_pattern = "#{}>td>input"
+__plugin_list_item_pattern = "//div[@id='extensions-manager-container']//following-sibling::td[text()='{}']"
 
 
 @step("Check is plugin already installed")
 def is_plugin_installed(plugin_name):
     try:
         s(__plugin_checkbox_pattern.format(plugin_name)).should(be.visible, timeout=1)
-        return True
-    except TimeoutException:
+        #s(by_xpath(__plugin_list_item_pattern.format(plugin_name))).should(be.visible, timeout=1)
         return False
+    except TimeoutException:
+        return True
 
 
 @step("Apply target setting")

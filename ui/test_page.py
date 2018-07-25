@@ -1,14 +1,27 @@
-from selene import browser  # TODO: remove it letter
-from selenium.webdriver.common.action_chains import ActionChains  # TODO: remove it letter
-from allure import step
-from selene.bys import *
-from selene.support.conditions import be, have
-from selene.support.jquery_style_selectors import s
-
-from ui import main_page
+from ui.main_page import *
 
 
 __test_select_pattern = "//a/h3[text()='{}']"
+__add_selection_btn = s(by_css(".itemref-placeholder"))
+__save_btn = by_id("saver")
+__monitor_btn_pattern = "//h3[text()='{}']/following-sibling::div//span[contains(@class,'action play')]"
+__play_btn_pattern = "//span[@title='{}']/parent::td/following-sibling::td[@class='actions authorizeCl']/button"
+__delivery_status_pattern = "//span[@title='{}']/parent::td/following-sibling::td[@class='status']"
+__popup_message = "//h3[text()='{}']/following-sibling::div"
+
+
+def authorize_delivery(delivery_obj):
+    s(by_xpath(__play_btn_pattern.format(delivery_obj.label))).click()
+    ok_btn.click()
+    check_popup_message("Sessions authorized")
+
+
+def get_delivery_status(delivery_obj):
+    return s(by_xpath(__delivery_status_pattern.format(delivery_obj.label))).text
+
+
+def get_delivery_popup_message(delivery_obj):
+    return s(by_xpath(__popup_message.format(delivery_obj.label))).text
 
 
 def is_delivery_availiable(delivery_name):
@@ -27,11 +40,13 @@ def choose_answer(index=None):
     s(by_xpath("//li[@data-control='move-forward' or @data-control='move-end']/a")).click()
 
 
-# TODO: move it to another page
-#__item_select_patern = "//li[@class='instance']//a[@title='{}']"
-#__add_selection_btn = s(by_xpath("//ol[@data-msg='Add selected item(s) here.']/div"))
-__add_selection_btn = s(by_css(".itemref-placeholder"))
-__save_btn = by_id("saver")
+@step("Is test passion blocked")
+def is_test_blocked():
+    try:
+        return s(by_xpath("//a[@class='block box']")).is_displayed()
+    except TimeoutException:
+        return False
+
 
 @step("Select item to include in test")
 def select_item(item_obj):
@@ -43,7 +58,16 @@ def add_selected_items():
     __add_selection_btn.click()
 
 
+@step("Open delivery monitor")
+def open_delivery_monitor(delivery_obj):
+    s(by_xpath(__monitor_btn_pattern.format(delivery_obj.label))).click()
+    wait_page_reloaded()
+
 @step("Save the test")
 def save_test():
     s(__save_btn).click()
-    main_page.check_popup_message("Test Saved")
+    check_popup_message("Test Saved")
+
+
+def start_session(delivery_obj):
+    s(by_xpath("//h3[text()='{}]//following::span[@class='action play']".format(delivery_obj.label)))
