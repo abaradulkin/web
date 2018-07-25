@@ -27,6 +27,7 @@ class BaseTest(object):
     config.browser_name = env("automation_platform", "chrome")
     config.timeout = 7
     admin_name = "admin"
+    admin_pass = "admin"
     factory = TaoObjectFactory()
 
     def setup(self):
@@ -47,27 +48,21 @@ class TestSmoke(BaseTest):
     suite_proctor = BaseTest.factory.create_user(role="Proctor")
     suite_lti = BaseTest.factory.create_lti()
 
-    def setup(self):
-        super().setup()
-        login_page.make_login(self.admin_name, self.admin_name)
-
     def test_loggin_as_administrator(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         assert self.admin_name == main_page.get_loggined_username()
 
     def test_create_items(self):
-        main_page.open_items()
+        login_page.make_login(self.admin_name, self.admin_pass)
         for item in self.suite_items:
             admin_steps.create_new_item(item)
-            assert item_page.is_item_exists(item)
+            assert item_page.is_item_in_list(item.label)
 
     def test_add_interaction_to_item(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         for item in self.suite_items:
-            main_page.open_items()
-            item_page.open_item_authoring(item)
-            item_page.add_choice()
-            item_page.select_correct_choice(1)
-            item_page.check_choice_selected(1)
-            item_page.save_item()
+            admin_steps.add_interaction_to_item(item, choice=1)
+            assert item_page.is_interaction_on_item()
 
     def test_remove_interaction_from_item(self):
         main_page.open_items()
@@ -77,7 +72,7 @@ class TestSmoke(BaseTest):
 
     def test_delete_item(self):
         admin_steps.delete_target_item(self.suite_items[-1])
-        assert not item_page.is_item_exists(self.suite_items[-1])
+        assert not item_page.is_item_in_list(self.suite_items[-1].label)
 
     def test_create_test(self):
         main_page.open_tests()

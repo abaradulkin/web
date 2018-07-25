@@ -3,6 +3,18 @@ from allure import step
 from ui import main_page, item_page, delivery_page, lti_page
 
 
+@step("Add interaction to item")
+def add_interaction_to_item(item_obj, choice=None):
+    main_page.open_items()
+    item_page.open_item_authoring(item_obj.label)
+    item_page.add_choice()  # TODO: add different types of interaction
+    if choice:  # TODO: make choise as part of item_obj
+        item_page.select_correct_choice(choice)
+        item_page.check_choice_selected(choice)
+    item_page.save_authoring()
+    item_page.check_popup_message("Your item has been saved")
+
+
 @step("Create new delivery")
 def create_new_delivery(delivery_obj):
     main_page.open_delivery()

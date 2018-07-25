@@ -15,7 +15,7 @@ __widget_interaction = s(by_css(".widget-blockInteraction"))
 __work_area = s(by_css(".item-editor-drop-area"))
 __delete_item_btn = by_xpath("//li[(@id='item-delete' or @id='item-class-delete') and not(contains(@class, 'hidden'))]/a")
 __import_item_btn = s(by_xpath("//li[@id='item-import']/a"))
-
+__interaction_div = s(by_xpath("//div[@data-qti-class='choiceInteraction']"))
 
 @step("Add choice to item")
 def add_choice():
@@ -32,10 +32,10 @@ def check_choice_selected(num=1):
     s(by_xpath(__choice_checkbox_pattern.format(num))).should_have(have.css_class("user-selected"))
 
 
-@step("Check item exists in list")
-def is_item_exists(item_obj):
+@step("Check hac item an interaction")
+def is_interaction_on_item():
     try:
-        return s(by_xpath(__item_pattern.format(item_obj.label))).is_displayed()
+        return __interaction_div.is_displayed()
     except TimeoutException:
         return False
 
@@ -55,28 +55,27 @@ def make_deletion_action():
 
 
 @step("Open item authoring")
-def open_item_authoring(item_obj):
-    open_target_item(item_obj)
+def open_item_authoring(label):
+    open_target_item(label)
     open_authoring()
 
 
+@step("Save authoring")
+def save_authoring():
+    s("span>.icon-save").click()
+
+
 @step("Open target item")
-def open_target_item(item_obj):
-    s(by_xpath(__item_pattern.format(item_obj.label))).click()
+def open_target_item(item_label):
+    s(by_xpath(__item_pattern.format(item_label))).click()
     wait_page_reloaded()
-    assert item_obj.label == get_current_item_name()
+    assert item_label == get_current_item_name()
 
 
 @step("Remove choice from item")
 def remove_choice():
     __widget_interaction.click()
     __delete_interaction_btn.click()
-
-
-@step("Save the item")
-def save_item():
-    __save_btn.click()
-    check_popup_message("Your item has been saved")
 
 
 @step("Select correct choice")
