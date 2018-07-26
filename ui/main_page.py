@@ -4,8 +4,7 @@ from allure import step
 from selene.bys import *
 from selene.support.conditions import be, have
 from selene.support.jquery_style_selectors import s, ss
-from selenium.common.exceptions import TimeoutException, NoSuchElementException
-from ui.actions import import_actions  # TODO: remove it later
+from selenium.common.exceptions import TimeoutException
 
 # Main and navigates elements for page
 __username = s(by_css(".username"))
@@ -93,22 +92,6 @@ def home():
     __home_btn.click()
 
 
-@step("Import group from disk")
-def import_group(group_name):
-    __import_group_btn.click()
-    import_actions.make_import(file_path=group_name, import_type="rdf",
-                               import_message="Data imported successfully")
-    wait_page_reloaded()
-
-
-@step("Import testtaker from disk")
-def import_testtaker(item_name):
-    __import_testtaker_btn.click()
-    import_actions.make_import(file_path=item_name, import_type="rdf",
-                               import_message="Data imported successfully")
-    wait_page_reloaded()
-
-
 @step("Check user in users list")
 def is_user_in_list(user, role=None):
     user_pattern = "//td[@class='login' and text()='{}']".format(user)
@@ -192,36 +175,7 @@ def open_test_takers():
     wait_page_reloaded()
 
 
-@step("Open target group")
-def open_target_group(group_name):
-    s(by_xpath(__group_pattern.format(group_name))).click()
-    wait_page_reloaded()
-    __current_label_input.should(have.value(group_name))
-
-
-@step("Open target test taker")
-def open_target_testtaker(testtaker_name):
-    s(by_xpath(__testtaker_pattern.format(testtaker_name))).click()
-    wait_page_reloaded()
-
-
 @step("Open users page")
 def open_users():
     __users_btn.click()
     wait_page_reloaded()
-
-
-@step("Rename target group")
-def rename_group(old_name, new_name):
-    open_target_group(old_name)
-    set_name_and_save(new_name)
-    check_popup_message("Group saved")
-
-
-@step("Rename test taker")
-def rename_testtaker(old_name, new_name):
-    open_target_testtaker(old_name)
-    wait_page_reloaded()
-    s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(new_name)
-    __save_btn.click()
-    check_popup_message("Test-taker saved")
