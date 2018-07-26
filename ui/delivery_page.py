@@ -6,10 +6,10 @@ from ui.actions import import_actions
 __delivery_pattern = "//li[@title='Assembled Delivery ']//li[@title='{}']/a"
 __proctorin_option_checkbox = s("#http_2_www_0_tao_0_lu_1_Ontologies_1_TAODelivery_0_rdf_3_ProctorAccessible_0")
 __new_delivery_btn = s(by("#delivery-new>a"))
-__test_for_delivery_selection_field = s(by_id("select2-chosen-2"))
-__test_for_deliver_input = s(by_id("s2id_autogen2_search"))
+__test_for_delivery_selection_field = s("#select2-chosen-2")
+__test_for_deliver_input = s("#s2id_autogen2_search")
 __test_for_delivery_element_pattern = "//div[text()='{}']"
-__publish_button = s(by_css(".action-label"))
+__publish_button = s(".action-label")
 __lti_btn = s("#lti-delivery-link")
 __launch_url_input = s("#copyPasteBox")
 

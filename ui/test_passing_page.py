@@ -2,7 +2,6 @@ from ui.main_page import *
 
 
 __test_select_pattern = "//a/h3[text()='{}']"
-__save_btn = by_id("saver")
 __monitor_btn_pattern = "//h3[text()='{}']/following-sibling::div//span[contains(@class,'action play')]"
 __play_btn_pattern = "//span[@title='{}']/parent::td/following-sibling::td[@class='actions authorizeCl']/button"
 __delivery_status_pattern = "//span[@title='{}']/parent::td/following-sibling::td[@class='status']"

@@ -7,15 +7,16 @@ from selene.support.jquery_style_selectors import s
 
 
 # Import options area
-__content_package_radio_btn = by_id("importHandler_1")
+__browse_file_btn = s(by_xpath("//input[@type='file']"))
+__content_package_radio_btn = s("#importHandler_1")
+__file_success_status_icon = s(".status.success")
+__file_type_label = s('#file')
+__import_button = s(".form-submitter")
+__import_continue_btn = s("#import-continue")
+__status_message = s(".feedback-success")
+__success_dialog_icon = s(".icon-success")
+
 __import_format_pattern = "//label[contains(text(), '{}')]"
-__browse_file_btn = by_xpath("//input[@type='file']")
-__file_type_label = by_id('file')
-__file_success_status_icon = by_css(".status.success")
-__import_button = by_css(".form-submitter")
-__import_continue_btn = by_id("import-continue")
-__status_message = by_css(".feedback-success")
-__success_dialog_icon = by_css(".icon-success")
 
 
 IMPORT_TYPES = {
@@ -38,21 +39,20 @@ def make_import(file_path, import_message, import_type="rdf"):
 @step("Select import type")
 def __select_import_type(import_type):
     s(by_xpath(__import_format_pattern.format(IMPORT_TYPES[import_type]))).click()
-    s(__file_type_label).should(have.text(IMPORT_TYPES_MESSAGE[import_type]))
+    __file_type_label.should(have.text(IMPORT_TYPES_MESSAGE[import_type]))
 
 
 @step("Select file to import and wait for verification")
 def __select_file_for_import(file_path, extension):
     # TODO: change for relative path
     path = "./tao_tests/test_data/{}.{}".format(file_path, extension)
-    print(realpath(path))
-    s(__browse_file_btn).set_value(realpath(path))
-    s(__file_success_status_icon).should_be(be.visible)
+    __browse_file_btn.set_value(realpath(path))
+    __file_success_status_icon.should_be(be.visible)
 
 
 @step("Accept import and check import message")
 def __accept_import(message):
-    s(__import_button).click()
-    s(__success_dialog_icon).should_be(be.visible, timeout=20)
-    s(__status_message).should(have.text(message))
-    s(__import_continue_btn).click()
+    __import_button.click()
+    __success_dialog_icon.should_be(be.visible, timeout=20)
+    __status_message.should(have.text(message))
+    __import_continue_btn.click()
