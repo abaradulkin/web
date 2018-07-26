@@ -1,6 +1,6 @@
 from allure import step
 
-from ui import main_page, item_page, delivery_page, lti_page, testtaker_page
+from ui import main_page, item_page, delivery_page, lti_page, testtaker_page, test_creation_page
 
 
 @step("Add interaction to item")
@@ -8,11 +8,11 @@ def add_interaction_to_item(item_obj, choice=None):
     main_page.open_items()
     item_page.open_target_item(item_obj.label)
     item_page.open_authoring()
-    item_page.add_choice()  # TODO: add different types of interaction
+    item_page.authoring_actions.add_choice()  # TODO: add different types of interaction
     if choice:  # TODO: make choise as part of item_obj
-        item_page.select_correct_choice(choice)
-        item_page.check_choice_selected(choice)
-    item_page.save_authoring()
+        item_page.authoring_actions.select_correct_choice(choice)
+        item_page.authoring_actions.check_choice_selected(choice)
+    item_page.authoring_actions.save_items()
     item_page.check_popup_message("Your item has been saved")
 
 
@@ -39,18 +39,29 @@ def create_new_item(item_obj):
 
 
 @step("Create new testtaker")
-def create_newtest_taker(testtaker_obj):
+def create_new_testtaker(testtaker_obj):
     main_page.open_test_takers()
     testtaker_page.start_testtaker_creation()
 
     testtaker_page.select_language(testtaker_obj.language)
     testtaker_page.fill_login(testtaker_obj.login)
     testtaker_page.fill_label(testtaker_obj.label)
-    testtaker_page.fill_label(testtaker_obj.label)
     testtaker_page.fill_password(testtaker_obj.password)
 
     testtaker_page.save_current_object()
     testtaker_page.check_popup_message("Test-taker saved")
+
+
+@step("Create new test with selected items")
+def create_new_test(test_obj, item_list):
+    main_page.open_tests()
+    test_creation_page.create_new_test(test_obj.label)
+    test_creation_page.open_test_authoring(test_obj.label)
+    for item in item_list:
+        test_creation_page.authoring_actions.select_item(item)
+    test_creation_page.authoring_actions.add_selected_items()
+    test_creation_page.authoring_actions.save()
+    test_creation_page.check_popup_message("Test Saved")
 
 
 @step("Create new LTI")
@@ -67,6 +78,22 @@ def create_new_lti(lti_obj):
     lti_page.check_popup_message("{} created".format(lti_obj.label))
 
 
+@step("Create new user")
+def create_new_user(user_obj):
+    main_page.open_users()
+    main_page.open_add_user_tab()
+
+    # TODO: merge this method with create_new_testtaker()
+    testtaker_page.select_language(user_obj.language)
+    testtaker_page.fill_login(user_obj.login)
+    testtaker_page.fill_label(user_obj.label)
+    testtaker_page.fill_password(user_obj.password)
+    testtaker_page.fill_role(user_obj.role)
+
+    testtaker_page.save_current_object()
+    testtaker_page.check_popup_message("User added")
+
+
 @step("Delete target item")
 def delete_target_item(item_obj):
     main_page.open_items()
@@ -80,8 +107,8 @@ def remove_interaction_from_item(item_obj):
     main_page.open_items()
     item_page.open_target_item(item_obj.label)
     item_page.open_authoring()
-    item_page.remove_choice()
-    item_page.save_authoring()
+    item_page.authoring_actions.remove_choice()
+    item_page.authoring_actions.save_items()
     item_page.check_popup_message("Your item has been saved")
 
 

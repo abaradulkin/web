@@ -2,7 +2,6 @@ from ui.main_page import *
 
 
 __test_select_pattern = "//a/h3[text()='{}']"
-__add_selection_btn = s(by_css(".itemref-placeholder"))
 __save_btn = by_id("saver")
 __monitor_btn_pattern = "//h3[text()='{}']/following-sibling::div//span[contains(@class,'action play')]"
 __play_btn_pattern = "//span[@title='{}']/parent::td/following-sibling::td[@class='actions authorizeCl']/button"
@@ -48,25 +47,12 @@ def is_test_blocked():
         return False
 
 
-@step("Select item to include in test")
-def select_item(item_obj):
-    s(by_link_text(item_obj.label)).click()
-
-
-@step("Add selected items to test")
-def add_selected_items():
-    __add_selection_btn.click()
-
-
 @step("Open delivery monitor")
 def open_delivery_monitor(delivery_obj):
     s(by_xpath(__monitor_btn_pattern.format(delivery_obj.label))).click()
     wait_page_reloaded()
 
-@step("Save the test")
-def save_test():
-    s(__save_btn).click()
-    check_popup_message("Test Saved")
+
 
 
 def start_session(delivery_obj):

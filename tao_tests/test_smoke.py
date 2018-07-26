@@ -4,10 +4,10 @@ from allure import feature, severity
 from selene import browser, config
 from selene.helpers import env
 
-from ui import login_page, main_page, item_page, test_page, results_page, settings_page, delivery_page
+from ui import (login_page, main_page, item_page, test_passing_page, results_page, settings_page, delivery_page, group_page,
+                test_creation_page)
 from step import admin_steps
 from utilities.factory import TaoObjectFactory
-
 
 CURRENT_SPRINT = "sprint81"
 
@@ -16,6 +16,7 @@ CURRENT_SPRINT = "sprint81"
 def additional_tab():
     def switch(num=0):
         browser.driver().switch_to.window(browser.driver().window_handles[num])
+
     browser.driver().execute_script("window.open('');")
     switch(1)
     browser.open_url(CURRENT_SPRINT)
@@ -76,46 +77,46 @@ class TestSmoke(BaseTest):
 
     def test_create_test(self):
         login_page.make_login(self.admin_name, self.admin_pass)
+        admin_steps.create_new_test(self.suite_test, self.suite_items[:-1])
         main_page.open_tests()
-        main_page.create_new_test(self.suite_test)
-        main_page.open_test_authoring(self.suite_test)
-        for item in self.suite_items[:-1]:
-            test_page.select_item(item)
-        test_page.add_selected_items()
-        test_page.save_test()
+        assert test_creation_page.is_object_in_list(self.suite_test.label)
 
     def test_create_testtaker(self):
         login_page.make_login(self.admin_name, self.admin_pass)
-        admin_steps.create_newtest_taker(self.suite_testtaker)
+        admin_steps.create_new_testtaker(self.suite_testtaker)
         assert main_page.is_object_in_list(self.suite_testtaker.label)
 
     def test_create_group(self):
         login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_groups()
-        main_page.create_new_group(self.suite_group)
-        main_page.add_testtaker_to_group(self.suite_testtaker)
+        group_page.create_new_group(self.suite_group.label)
+        assert main_page.is_object_in_list(self.suite_group.label)
+        group_page.add_testtaker_to_group(self.suite_testtaker.label)
+        assert group_page.is_testaker_selected(self.suite_testtaker.label)
 
     def test_create_delivery(self):
         login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_delivery()
-        # TODO: realise delivery object as class, instead of namedtouple
+        # TODO: realise delivery object as class, instead of namedtuple
         # self.suite_delivery.group = self.suite_group
         # self.suite_delivery.test = self.suite_test
         admin_steps.create_new_delivery(self.suite_delivery)
+        assert delivery_page.is_object_in_list(self.suite_delivery.label)
 
     def test_login_as_testtaker(self):
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
-        test_page.is_delivery_availiable(self.suite_delivery)
+        assert test_passing_page.is_delivery_availiable(self.suite_delivery)
 
     def test_pass_test_as_testtaker(self):
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
-        test_page.select_delivery_for_passing(self.suite_delivery)
-        test_page.choose_answer()
-        test_page.choose_answer(1)
-        test_page.choose_answer(2)
-        assert test_page.is_delivery_availiable(self.suite_delivery)
+        test_passing_page.select_delivery_for_passing(self.suite_delivery)
+        test_passing_page.choose_answer()
+        test_passing_page.choose_answer(1)
+        test_passing_page.choose_answer(2)
+        assert test_passing_page.is_delivery_availiable(self.suite_delivery)
 
     def test_view_results_as_administrator(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_results()
         results_page.select_target_result(self.suite_delivery, self.suite_testtaker)
         assert self.suite_testtaker.label == results_page.get_testtaker_label()
@@ -126,6 +127,7 @@ class TestSmoke(BaseTest):
 
     @feature("Proctoring")
     def test_install_proctoring(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_settings()
         plugin_name = "taoProctoring"
         if settings_page.is_plugin_installed(plugin_name):
@@ -136,43 +138,44 @@ class TestSmoke(BaseTest):
 
     @feature("Proctoring")
     def test_create_proctor(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_users()
-        main_page.create_new_user(self.suite_proctor)
+        admin_steps.create_new_user(self.suite_proctor)
         assert main_page.is_user_in_list(self.suite_proctor.login, self.suite_proctor.role)
 
     @feature("Proctoring")
     def test_enable_proctoring_for_delivery(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         main_page.open_delivery()
         delivery_page.open_target_delivery(self.suite_delivery)
         delivery_page.set_proctoring(enabled=True)
-        delivery_page.check_popup_message("Delivery saved")
+        delivery_page.check_popup_message("Delivery saved")  # instead of assert
 
     @feature("Proctoring")
     def test_login_as_proctor(self):
-        main_page.logout()
         login_page.make_login(self.suite_proctor.label, self.suite_proctor.password)
-        assert test_page.is_delivery_availiable(self.suite_delivery)
+        assert test_passing_page.is_delivery_availiable(self.suite_delivery)
 
     @feature("Proctoring")
     def test_able_to_authorize_session(self, additional_tab):
         # Try to start test as TestTaker
-        main_page.logout()
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
-        test_page.select_delivery_for_passing(self.suite_delivery)
-        assert test_page.get_delivery_popup_message(self.suite_delivery) == "Please wait, authorization in process ..."
+        test_passing_page.select_delivery_for_passing(self.suite_delivery)
+        assert test_passing_page.get_delivery_popup_message(self.suite_delivery) == "Please wait, authorization in process ..."
         # Authorize test as Proctor
         additional_tab(1)
         login_page.make_login(self.suite_proctor.label, self.suite_proctor.password)
-        test_page.open_delivery_monitor(self.suite_delivery)
-        test_page.authorize_delivery(self.suite_delivery)
-        assert test_page.get_delivery_status(self.suite_delivery) == "Authorized but not started"
+        test_passing_page.open_delivery_monitor(self.suite_delivery)
+        test_passing_page.authorize_delivery(self.suite_delivery)
+        assert test_passing_page.get_delivery_status(self.suite_delivery) == "Authorized but not started"
         # Check that test authorized
         additional_tab(0)
         browser.driver().refresh()
         login_page.make_login(self.suite_testtaker.label, self.suite_testtaker.password)
-        assert test_page.get_delivery_popup_message(self.suite_delivery) == "Authorized, you may proceed"
+        assert test_passing_page.get_delivery_popup_message(self.suite_delivery) == "Authorized, you may proceed"
 
     @feature("LTI")
     def test_create_lti(self):
+        login_page.make_login(self.admin_name, self.admin_pass)
         admin_steps.create_new_lti(self.suite_lti)
         assert main_page.is_object_in_list(self.suite_lti.label)

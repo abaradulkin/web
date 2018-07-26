@@ -14,6 +14,12 @@ def fill_label(label):
     s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(label)
 
 
+@step("Select language for testaker")
+def select_language(language):
+    s(by_xpath(__testtaker_field_pattern.format("Interface Language", "select"))).click()
+    s(by_xpath(__language_select_patter.format(language))).click()
+
+
 @step("Fill testtaker login")
 def fill_login(login):
     s(by_xpath(__testtaker_field_pattern.format("Login", "input"))).set_value(login)
@@ -25,10 +31,9 @@ def fill_password(password):
     s(by_xpath(__testtaker_field_pattern.format("Repeat password", "input"))).set_value(password)
 
 
-@step("Select language for testaker")
-def select_language(language):
-    s(by_xpath(__testtaker_field_pattern.format("Interface Language", "select"))).click()
-    s(by_xpath(__language_select_patter.format(language))).click()
+@step("Fill user role")
+def fill_role(role):
+    s(by_xpath("//label[@class='elt_desc' and text()='{}']".format(role))).click()
 
 
 @step("Start new testtaker creation")

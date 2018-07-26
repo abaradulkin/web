@@ -16,6 +16,7 @@ __items_btn = s(by_xpath("//a[@title='Create and design items and exercises.']")
 __results_btn = s(by_xpath("//a[@title='View and format the collected results.']"))
 __tests_btn = s(by_xpath("//a[@title='Combine a selection of items into tests.']"))
 __test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
+__language_select_patter = "//option[text()='{}']"
 #__save_btn = s(by_name("Save"))
 __save_btn = ss(by_xpath("//button[contains(text(), 'Save')]"))[0]
 __create_btn = s("a>.icon-save")
@@ -24,18 +25,6 @@ __users_btn = s("#users")
 __current_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
 __logout_btn = s("#logout")
 __home_btn = s("#home")
-
-# Group actions and group list elements
-__new_group_btn = s(by_css("#group-new>a"))
-__import_group_btn = s(by_xpath("//li[@id='group-import']/a"))
-
-__group_pattern = "//li[@title='Group']//li[@title='{}']/a"
-
-# Tests actions and tests list elements
-__new_test_btn = s(by_xpath("//li[@id='test-new']/a"))
-__test_pattern = "//li[@title='Test']//li[@title='{}']/a"
-__import_test_btn = s(by_xpath("//li[@id='test-import']/a"))
-__test_list = ss(by_xpath("//li[@title='Test']/ul/li"))
 
 # Item editing area
 __authoring_btn = by_xpath("//li[@title='Authoring']/a")
@@ -89,46 +78,6 @@ def set_name_and_save(label, popup_msg=None):
 
 
 #################################
-@step("Add testtaker to a group")
-def add_testtaker_to_group(testtaker_obj):
-    s(by_xpath("//a[text()='{}']".format(testtaker_obj.label))).click()
-    s(by_xpath("//footer//button[text()=' Save']")).click()
-    check_popup_message("Selection saved successfully")
-
-
-@step("Create new group")
-def create_new_group(group_obj):
-    __new_group_btn.click()
-    wait_page_reloaded()
-    set_name_and_save(group_obj.label)
-    check_popup_message("Group saved")
-
-
-@step("Create new test")
-def create_new_test(test_obj):
-    __new_test_btn.click()
-    wait_page_reloaded()
-    set_name_and_save(test_obj.label)
-    check_popup_message("Test saved")
-
-
-@step("Create new user")
-def create_new_user(user_obj):
-    __users_tab.click()
-    wait_page_reloaded()
-
-    s(by_xpath(__testtaker_field_pattern.format("Interface Language", "select"))).click()
-    s(by_xpath(__language_select_patter.format(user_obj.language))).click()
-    s(by_xpath(__testtaker_field_pattern.format("Login", "input"))).set_value(user_obj.login)
-    s(by_xpath(__testtaker_field_pattern.format("Label", "input"))).set_value(user_obj.label)
-    s(by_xpath(__testtaker_field_pattern.format("Password", "input"))).set_value(user_obj.password)
-    s(by_xpath(__testtaker_field_pattern.format("Repeat password", "input"))).set_value(user_obj.password)
-    s(by_xpath("//label[@class='elt_desc' and text()='{}']".format(user_obj.role))).click()
-
-    __save_btn.click()
-    check_popup_message("User added")
-
-
 @step("Get current user name")
 def get_loggined_username():
     return __username.text
@@ -160,14 +109,6 @@ def import_testtaker(item_name):
     wait_page_reloaded()
 
 
-@step("Import test from disk")
-def import_test(test_name):
-    __import_test_btn.click()
-    import_actions.make_import(file_path=test_name, import_type="zip",
-                               import_message="IMS QTI Test Package successfully imported.")
-    wait_page_reloaded()
-
-
 @step("Check user in users list")
 def is_user_in_list(user, role=None):
     user_pattern = "//td[@class='login' and text()='{}']".format(user)
@@ -191,6 +132,12 @@ def is_object_in_list(item_name):
 @step("Make logout")
 def logout():
     __logout_btn.click()
+
+
+@step("Open add user tab")
+def open_add_user_tab():
+    __users_tab.click()
+    wait_page_reloaded()
 
 
 @step("Open authoring")
@@ -239,12 +186,6 @@ def open_tests():
     wait_page_reloaded()
 
 
-@step("Open test authoring")
-def open_test_authoring(item_obj):
-    open_target_test(item_obj)
-    s(__authoring_btn).click()
-
-
 @step("Open test taker page")
 def open_test_takers():
     __test_takers_btn.click()
@@ -256,13 +197,6 @@ def open_target_group(group_name):
     s(by_xpath(__group_pattern.format(group_name))).click()
     wait_page_reloaded()
     __current_label_input.should(have.value(group_name))
-
-
-@step("Open target test")
-def open_target_test(test_obj):
-    s(by_xpath(__test_pattern.format(test_obj.label))).click()
-    wait_page_reloaded()
-    __current_label_input.should(have.value(test_obj.label))
 
 
 @step("Open target test taker")
@@ -282,13 +216,6 @@ def rename_group(old_name, new_name):
     open_target_group(old_name)
     set_name_and_save(new_name)
     check_popup_message("Group saved")
-
-
-@step("Rename last test")
-def rename_test(old_test_name, new_test_name):
-    open_target_test(old_test_name)
-    set_name_and_save(new_test_name)
-    check_popup_message("Test saved")
 
 
 @step("Rename test taker")
