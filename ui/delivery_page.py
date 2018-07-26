@@ -10,6 +10,15 @@ __test_for_delivery_selection_field = s(by_id("select2-chosen-2"))
 __test_for_deliver_input = s(by_id("s2id_autogen2_search"))
 __test_for_delivery_element_pattern = "//div[text()='{}']"
 __publish_button = s(by_css(".action-label"))
+__lti_btn = s("#lti-delivery-link")
+__launch_url_input = s("#copyPasteBox")
+
+
+@step("Get Launch URL to pass test via LTI")
+def get_lti_link(label):
+    open_target_delivery(label)
+    __lti_btn.click()
+    return __launch_url_input.text
 
 
 @step("Open target delivery")

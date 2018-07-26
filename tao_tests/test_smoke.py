@@ -5,7 +5,7 @@ from selene import browser, config
 from selene.helpers import env
 
 from ui import (login_page, main_page, item_page, test_passing_page, results_page, settings_page, delivery_page, group_page,
-                test_creation_page)
+                test_creation_page, external_lti_page)
 from step import admin_steps
 from utilities.factory import TaoObjectFactory
 
@@ -179,3 +179,17 @@ class TestSmoke(BaseTest):
         login_page.make_login(self.admin_name, self.admin_pass)
         admin_steps.create_new_lti(self.suite_lti)
         assert main_page.is_object_in_list(self.suite_lti.label)
+
+    @feature("LTI")
+    def test_launch_test_via_ltu(self, additional_tab):
+        login_page.make_login(self.admin_name, self.admin_pass)
+        main_page.open_delivery()
+        lti_link = delivery_page.get_lti_link(self.suite_delivery)
+        external_lti_page.open()
+        external_lti_page.fill_launch_url(lti_link)
+        external_lti_page.fill_lti_key(self.suite_lti.key)
+        external_lti_page.fill_lti_secret(self.suite_lti.secret)
+        external_lti_page.set_learner_role()
+        external_lti_page.save_and_launch()
+        additional_tab(2)
+        assert test_passing_page.is_delivery_availiable(self.suite_delivery)
