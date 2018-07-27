@@ -1,0 +1,3 @@
+pytest
+allure-pytest
+selene==1.0.0a13
