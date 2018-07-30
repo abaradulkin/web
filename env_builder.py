@@ -5,12 +5,12 @@ __author__ = 'Nikita Kovaliov <nikita@maizy.ru>'
 __license__ = 'MIT'
 __doc__ = 'init or update python venv (python 3.3+)'
 
-import venv
 import os.path as path
-import sys
-import urllib.request
-import urllib.error
 import subprocess
+import sys
+import urllib.error
+import urllib.request
+import venv
 
 
 def download_file_if_not_exist(res_path, url):
@@ -58,7 +58,7 @@ class ImprovedEnvBuilder(venv.EnvBuilder, BuilderUtilsMixin):
         env_dir = path.abspath(env_dir)
         context = self.ensure_directories(env_dir)
         self.create_configuration(context)
-        subprocess.call(['pyvenv', env_dir])
+        subprocess.call(['python', '-m', 'venv', env_dir])
         #self.setup_python(context)
         if not self.upgrade:
             self.setup_scripts(context)
