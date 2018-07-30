@@ -1,5 +1,5 @@
 from ui.main_page import *
-from ui.actions import import_actions
+from ui.actions import import_actions, authoring_actions
 
 __item_pattern = "//li[@title='Item']//li[@title='{}']/a"
 __new_item_btn = element(by_css("#item-new>a"))

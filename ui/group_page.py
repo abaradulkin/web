@@ -1,5 +1,5 @@
 from ui.main_page import *
-from ui.actions import import_actions
+from ui.actions import import_actions, authoring_actions
 
 __new_group_btn = element(by_css("#group-new>a"))
 __import_group_btn = element(by_xpath("//li[@id='group-import']/a"))

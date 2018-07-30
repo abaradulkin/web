@@ -10,7 +10,7 @@ from ui import (login_page, main_page, item_page, test_passing_page, results_pag
 from step import admin_steps
 from utilities.factory import TaoObjectFactory
 
-CURRENT_SPRINT = "sprint81"
+CURRENT_SPRINT = ""  # ""sprint81"
 
 
 @pytest.fixture(scope='function')

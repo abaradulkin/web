@@ -23,7 +23,7 @@ class SeleneElementModified(SeleneElement):
     def click(self):
         def action(it):
             def apply_style(s):
-                it._parent.execute_script("arguments[0].setAttribute('style', arguments[1]);", element, s)
+                it._parent.execute_script("arguments[0].setAttribute('style', arguments[1]);", it, s)
 
             original_style = it.get_attribute('style')
             apply_style("background: yellow; border: 2px solid red;")
