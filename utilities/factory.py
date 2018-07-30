@@ -1,11 +1,20 @@
 from framework.common.string_utilities import get_random_string
 from collections import namedtuple
+import attr
+
 
 Group = namedtuple("Group", ["label"])
 Group.__new__.__defaults__ = ("auto_group",)
 
-Delivery = namedtuple("Delivery", ["label", "test", "group"])
-Delivery.__new__.__defaults__ = ("auto_delivery", None, None)
+#Delivery = namedtuple("Delivery", ["label", "test", "group"])
+#Delivery.__new__.__defaults__ = ("auto_delivery", None, None)
+
+
+@attr.s
+class Delivery(object):
+    label = attr.ib(default="auto_delivery")
+    test = attr.ib(default=None)
+    group = attr.ib(default=None)
 
 Item = namedtuple("Item", ["label"])
 Item.__new__.__defaults__ = ("auto_item",)
@@ -67,3 +76,11 @@ class TaoObjectFactory(object):
             parameters["role"] = role
         result = User()
         return result._replace(**parameters)
+
+
+if __name__ == '__main__':
+    factory = TaoObjectFactory("abcd")
+    print(factory.create_item())
+    print(factory.create_test())
+    print(factory.create_group())
+    print(factory.create_delivery())
