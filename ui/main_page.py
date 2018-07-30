@@ -3,49 +3,49 @@ from time import sleep
 from allure import step
 from selene.bys import *
 from selene.support.conditions import be, have
-from selene.support.jquery_style_selectors import s, ss
+from framework.ui.elements import element, elements
 from selenium.common.exceptions import TimeoutException
 
 # Main and navigates elements for page
-__username = s(by_css(".username"))
-__popup_message = s(by_xpath("//div[@id='feedback-1']//div"))
-__groups_btn = s(by_xpath("//a[@title='Group test takers according to global features and classifications.']"))
-__delivery_btn = s(by_xpath("//a[@title='Prepare, publish deliveries sessions.']"))
-__items_btn = s(by_xpath("//a[@title='Create and design items and exercises.']"))
-__results_btn = s(by_xpath("//a[@title='View and format the collected results.']"))
-__tests_btn = s(by_xpath("//a[@title='Combine a selection of items into tests.']"))
-__test_takers_btn = s(by_xpath("//a[@title='Record and manage test-takers.']"))
+__username = element(by_css(".username"))
+__popup_message = element(by_xpath("//div[@id='feedback-1']//div"))
+__groups_btn = element(by_xpath("//a[@title='Group test takers according to global features and classifications.']"))
+__delivery_btn = element(by_xpath("//a[@title='Prepare, publish deliveries sessions.']"))
+__items_btn = element(by_xpath("//a[@title='Create and design items and exercises.']"))
+__results_btn = element(by_xpath("//a[@title='View and format the collected results.']"))
+__tests_btn = element(by_xpath("//a[@title='Combine a selection of items into tests.']"))
+__test_takers_btn = element(by_xpath("//a[@title='Record and manage test-takers.']"))
 __language_select_patter = "//option[text()='{}']"
-#__save_btn = s(by_name("Save"))
-__save_btn = ss(by_xpath("//button[contains(text(), 'Save')]"))[0]
-__create_btn = s("a>.icon-save")
-__setting_btn = s("#settings")
-__users_btn = s("#users")
-__current_label_input = s(by_xpath("//label[text()='Label']/following-sibling::input"))
-__logout_btn = s("#logout")
-__home_btn = s("#home")
+#__save_btn = element(by_name("Save"))
+__save_btn = elements(by_xpath("//button[contains(text(), 'Save')]"))[0]
+__create_btn = element("a>.icon-save")
+__setting_btn = element("#settings")
+__users_btn = element("#users")
+__current_label_input = element(by_xpath("//label[text()='Label']/following-sibling::input"))
+__logout_btn = element("#logout")
+__home_btn = element("#home")
 
 # Item editing area
 __authoring_btn = by_xpath("//li[@title='Authoring']/a")
 
 # Users page
-__users_tab = s(by_xpath("//a[@href='#panel-add_user']"))
+__users_tab = element(by_xpath("//a[@href='#panel-add_user']"))
 
 
 # Diallog buttons
-delete_diallog_ok_btn = by_xpath("//button[@data-control='ok']")
-ok_btn = s(by_xpath("//button[text()='OK']"))
+delete_diallog_ok_btn = element(by_xpath("//button[@data-control='ok']"))
+ok_btn = element(by_xpath("//button[text()='OK']"))
 
 # Settings page
-__lti_tab = s(by_xpath("//a[@title='LTI Consumers']"))
+__lti_tab = element(by_xpath("//a[@title='LTI Consumers']"))
 
 
 # Basic operations wih general buttons, dialogs and sync
 def wait_page_reloaded(timeout=10):
-    #s(by_css(".loading-bar")).should(be.visible)
+    #element(by_css(".loading-bar")).should(be.visible)
     sleep(1)
-    s(by_css(".loading-bar")).should_not(be.visible, timeout=timeout)
-    s(by_css(".loading")).should_not(be.visible, timeout=timeout)
+    element(by_css(".loading-bar")).should_not(be.visible, timeout=timeout)
+    element(by_css(".loading")).should_not(be.visible, timeout=timeout)
 
 
 @step("Check popup with message")
@@ -98,7 +98,7 @@ def is_user_in_list(user, role=None):
     if role:
         user_pattern = "{}/following-sibling::td[@class='roles' and text()='{}']".format(user_pattern, role)
     try:
-        s(by_xpath(user_pattern)).should(be.visible)
+        element(by_xpath(user_pattern)).should(be.visible)
         return True
     except TimeoutException:
         return False
@@ -107,7 +107,7 @@ def is_user_in_list(user, role=None):
 @step("Check is item in list")
 def is_object_in_list(item_name):
     try:
-        return s(by_xpath("//li[@title='{}']/a".format(item_name))).is_displayed()
+        return element(by_xpath("//li[@title='{}']/a".format(item_name))).is_displayed()
     except TimeoutException:
         return False
 
@@ -125,7 +125,7 @@ def open_add_user_tab():
 
 @step("Open authoring")
 def open_authoring():
-    s(__authoring_btn).click()
+    element(__authoring_btn).click()
 
 
 @step("Open groups page")

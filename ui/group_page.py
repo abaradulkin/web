@@ -1,9 +1,9 @@
 from ui.main_page import *
 from ui.actions import import_actions
 
-__new_group_btn = s(by_css("#group-new>a"))
-__import_group_btn = s(by_xpath("//li[@id='group-import']/a"))
-__testtaker_list_save_btn = ss(by_xpath("//button[contains(text(), 'Save')]"))[1]
+__new_group_btn = element(by_css("#group-new>a"))
+__import_group_btn = element(by_xpath("//li[@id='group-import']/a"))
+__testtaker_list_save_btn = elements(by_xpath("//button[contains(text(), 'Save')]"))[1]
 
 __testtaker_in_list_pattern = "//a[text()='{}']"
 __group_pattern = "//li[@title='Group']//li[@title='{}']/a"
@@ -11,7 +11,7 @@ __group_pattern = "//li[@title='Group']//li[@title='{}']/a"
 
 @step("Add testtaker to a group")
 def add_testtaker_to_group(label):
-    s(by_xpath(__testtaker_in_list_pattern.format(label))).click()
+    element(by_xpath(__testtaker_in_list_pattern.format(label))).click()
     __testtaker_list_save_btn.click()
     check_popup_message("Selection saved successfully")
 
@@ -36,12 +36,12 @@ def import_group(group_name):
 def is_testaker_selected(label):
     # Be careful, at start, when uncheck -> class=""
     # But if you check and uncheck again -> class="clicked uncheked"
-    return "checked" in s(by_xpath(__testtaker_in_list_pattern.format(label))).get_attribute("class")
+    return "checked" in element(by_xpath(__testtaker_in_list_pattern.format(label))).get_attribute("class")
 
 
 @step("Open target group")
 def open_target_group(group_name):
-    s(by_xpath(__group_pattern.format(group_name))).click()
+    element(by_xpath(__group_pattern.format(group_name))).click()
     wait_page_reloaded()
     assert get_current_item_name() == group_name
 

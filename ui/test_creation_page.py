@@ -1,11 +1,11 @@
 from ui.main_page import *
-from ui.actions import authoring_actions
+from ui.actions import import_actions
 
 
-__new_test_btn = s(by_xpath("//li[@id='test-new']/a"))
-__import_test_btn = s(by_xpath("//li[@id='test-import']/a"))
+__new_test_btn = element(by_xpath("//li[@id='test-new']/a"))
+__import_test_btn = element(by_xpath("//li[@id='test-import']/a"))
 __test_pattern = "//li[@title='Test']//li[@title='{}']/a"
-__test_list = ss(by_xpath("//li[@title='Test']/ul/li"))
+__test_list = elements(by_xpath("//li[@title='Test']/ul/li"))
 
 
 @step("Create new test")
@@ -26,7 +26,7 @@ def import_test(test_name):
 
 @step("Open target test")
 def open_target_test(label):
-    s(by_xpath(__test_pattern.format(label))).click()
+    element(by_xpath(__test_pattern.format(label))).click()
     wait_page_reloaded()
     assert get_current_item_name() == label
 

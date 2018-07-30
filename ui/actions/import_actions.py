@@ -1,20 +1,21 @@
-from os.path import realpath, exists
+from os.path import realpath
 
 from allure import step
 from selene.bys import *
 from selene.support.conditions import be, have
-from selene.support.jquery_style_selectors import s
+
+from framework.ui.elements import element
 
 
 # Import options area
-__browse_file_btn = s(by_xpath("//input[@type='file']"))
-__content_package_radio_btn = s("#importHandler_1")
-__file_success_status_icon = s(".status.success")
-__file_type_label = s('#file')
-__import_button = s(".form-submitter")
-__import_continue_btn = s("#import-continue")
-__status_message = s(".feedback-success")
-__success_dialog_icon = s(".icon-success")
+__browse_file_btn = element(by_xpath("//input[@type='file']"))
+__content_package_radio_btn = element("#importHandler_1")
+__file_success_status_icon = element(".status.success")
+__file_type_label = element('#file')
+__import_button = element(".form-submitter")
+__import_continue_btn = element("#import-continue")
+__status_message = element(".feedback-success")
+__success_dialog_icon = element(".icon-success")
 
 __import_format_pattern = "//label[contains(text(), '{}')]"
 
@@ -38,7 +39,7 @@ def make_import(file_path, import_message, import_type="rdf"):
 
 @step("Select import type")
 def __select_import_type(import_type):
-    s(by_xpath(__import_format_pattern.format(IMPORT_TYPES[import_type]))).click()
+    element(by_xpath(__import_format_pattern.format(IMPORT_TYPES[import_type]))).click()
     __file_type_label.should(have.text(IMPORT_TYPES_MESSAGE[import_type]))
 
 

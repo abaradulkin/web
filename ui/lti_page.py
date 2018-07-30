@@ -1,11 +1,11 @@
 from ui.main_page import *
 
 
-__lti_group_item = s(by_xpath("//li[@title='LTI Consumer']/a"))
-__new_lti_btn = s("#lticonsumer-new>a")
-__lti_label_input = s("#http_2_www_0_w3_0_org_1_2000_1_01_1_rdf-schema_3_label")
-__lti_key_input = s("#http_2_www_0_tao_0_lu_1_Ontologies_1_TAO_0_rdf_3_OauthKey")
-__lti_secret_input = s("#http_2_www_0_tao_0_lu_1_Ontologies_1_TAO_0_rdf_3_OauthSecret")
+__lti_group_item = element(by_xpath("//li[@title='LTI Consumer']/a"))
+__new_lti_btn = element("#lticonsumer-new>a")
+__lti_label_input = element("#http_2_www_0_w3_0_org_1_2000_1_01_1_rdf-schema_3_label")
+__lti_key_input = element("#http_2_www_0_tao_0_lu_1_Ontologies_1_TAO_0_rdf_3_OauthKey")
+__lti_secret_input = element("#http_2_www_0_tao_0_lu_1_Ontologies_1_TAO_0_rdf_3_OauthSecret")
 
 
 @step("Fill lti key")
@@ -26,4 +26,4 @@ def fill_lti_secret(secret):
 def start_lti_creation():
     __lti_group_item.click()
     __new_lti_btn.click()
-    #s("a>.icon-save").click()
+    #element("a>.icon-save").click()
