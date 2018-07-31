@@ -32,9 +32,7 @@ class BuilderUtilsMixin(object):
         """Run command in venv (emulate PATH=env_dir:PATH behavior)"""
         print(command, args)
         venv_command_path = path.join(context.bin_path, command)
-        if path.exists(venv_command_path):
-            command = venv_command_path
-        call_args = [command]
+        call_args = [venv_command_path]
         if args is not None:
             call_args.extend(args)
         try:
@@ -85,14 +83,6 @@ class EnvBuilder(ImprovedEnvBuilder):
         self.install_scripts(context, scripts_path)
 
     def post_upgrade(self, context):
-        print("if", path.join(context.bin_path, 'pip'))
-        if not path.exists(path.join(context.bin_path, 'pip')):
-            #if not self.install_distribute(context):
-            #    return
-            if not self.install_pip(context):
-                return
-        else:
-            print('[*] Pip already installed, skip')
         print('[*] Install requirements')
         requirements_path = path.join(self.provisions_path, 'requirements.txt')
         self.install_pip_requirements(context, requirements_path)
@@ -117,7 +107,6 @@ class EnvBuilder(ImprovedEnvBuilder):
 
     def install_pip(self, context):
         print('[*] Installing pip ... ', flush=True)
-        print(context)
         res = self.run_in_venv(context, 'easy_install', ['pip'])
         if not res:
             print('[!] Error', flush=True)
